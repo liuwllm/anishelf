@@ -1,7 +1,16 @@
+import sys
+import os
 import json
 import xml.etree.ElementTree as ET
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
 
-tree = ET.parse('../static/JMdict_e.xml')
+from app import db, Word, app
+
+load_dotenv()
+
+tree = ET.parse('./public/JMdict_e.xml')
 root = tree.getroot()
 
 dictEntries = []
@@ -40,8 +49,23 @@ for child in root:
     # Append entry to full dictionary(represented by list)
     dictEntries.append(entry)
 
-# Convert dictionary to JSON file
-jsonEntries = json.dumps(dictEntries, indent=2)
+dbEntries = []
+for item in dictEntries:
+    entry = Word(id=item['id'], keb=item['keb'], reb=item['reb'], sense=item['sense'])
+    dbEntries.append(entry)
 
-with open("../static/jmdict.json", "w") as outfile:
-    outfile.write(jsonEntries)
+with app.app_context():
+    try:
+        db.session.bulk_save_objects(dbEntries)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error during bulk insert: {e}")
+    finally:
+        db.session.close()
+
+# Convert dictionary to JSON file
+# jsonEntries = json.dumps(dictEntries, indent=2)
+
+# with open("../static/jmdict.json", "w") as outfile:
+#    outfile.write(jsonEntries)
