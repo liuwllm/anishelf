@@ -1,7 +1,7 @@
 services:
   nextapp:
     container_name: nextapp
-    image: nextapp:1.0.0
+    image: nextapp:latest
     build:
       context: ./front
       dockerfile: next.dockerfile
@@ -14,12 +14,12 @@ services:
   
   flaskapp:
     container_name: flaskapp
-    image: flaskapp:1.0.0
+    image: flaskapp:latest
     build:
       context: ./back
       dockerfile: flask.dockerfile
     ports:
-      - 4000:4000
+      - 5000:5000
     environment:
       DATABASE_URL: ${DATABASE_URL}
     depends_on:
