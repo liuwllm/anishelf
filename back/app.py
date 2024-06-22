@@ -49,8 +49,23 @@ class Episode(db.Model):
     episode_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     show_id = db.Column(db.Integer, db.ForeignKey(Show.id))
     words = db.Column(db.ARRAY(db.Integer))
-    links = db.Column(db.ARRAY(db.String))
+    subtitles = db.relationship('Subtitle', backref='episode')
     
+    def __init__(self, show_id, words=None):
+        self.show_id = show_id
+        self.words = words
+
+class Subtitle(db.Model):
+    __tablename__ = 'subtitles'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    episode_id = db.Column(db.Integer, db.ForeignKey(Episode.episode_id))
+    name = db.Column(db.String)
+    link = db.Column(db.String)
+
+    def __init__(self, episode_id, name=None, link=None):
+        self.episode_id = episode_id
+        self.name = name
+        self.link = link
 
 # Routes
 
@@ -59,4 +74,6 @@ class Episode(db.Model):
 def hello():
     return "Hello, world!"
 
-@app.route('/')
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    return "PLACEHOLDER"
