@@ -81,9 +81,9 @@ def hello():
     return "Hello, world!"
 
 
-@app.route('/check_episode', methods=['GET'])
+@app.route('/check_episode', endpoint='/check_episode', methods=['GET'])
 @cross_origin
-def checkEp():
+def check_episode():
     showId = int(request.args.get('anilist_id'))
     episodeNo = int(request.args.get('episode'))
     if Show.query.filter(Show.id == showId).count() == 0:
@@ -96,9 +96,9 @@ def checkEp():
         return Response(response=json.dumps({ "episode_exists": True}, mimetype='application/json'))
 
 
-@app.route('/analyze_episode', methods=['POST'])
+@app.route('/analyze_episode', endpoint='/analyze_episode', methods=['POST'])
 @cross_origin
-def analyzeEp():
+def analyze_episode():
     text = request.form['data']
     resultDict = jpWordExtract(text)
 
@@ -123,9 +123,9 @@ def analyzeEp():
     return Response(response=json.dumps(allWords), mimetype='application/json')
 
 
-@app.route('/get_episode', methods=['GET'])
+@app.route('/get_episode', endpoint='/get_episode', methods=['GET'])
 @cross_origin
-def getEp():
+def get_episode():
     showId = int(request.args.get('anilist_id'))
     episodeNo = int(request.args.get('episode'))
     offset = int(request.args.get('offset'))
