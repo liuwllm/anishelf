@@ -7,3 +7,4 @@ mecab-python3
 regex
 python-dotenv
 Flask-Migrate
+unidic-lite

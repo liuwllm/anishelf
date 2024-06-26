@@ -1,10 +1,12 @@
 import os
 import json
-from flask import Flask, Response
+from flask import Flask, Response, request
 from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import any_
 from flask_migrate import Migrate
 from dotenv import load_dotenv
+from jp_parse import jpWordExtract
 
 # Initialization & config
 
@@ -23,9 +25,9 @@ migrate = Migrate(app, db)
 
 class Word(db.Model):
     __tablename__ = 'words'
-    id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False)
-    keb = db.Column(db.ARRAY(db.String))
-    reb = db.Column(db.ARRAY(db.String))
+    id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False, index=True)
+    keb = db.Column(db.ARRAY(db.String), index=True)
+    reb = db.Column(db.ARRAY(db.String), index=True)
     sense = db.Column(db.ARRAY(db.String))
 
     def __init__(self, id, keb=None, reb=None, sense=None):
@@ -34,36 +36,40 @@ class Word(db.Model):
         self.reb = reb
         self.sense = sense
 
+
 class Show(db.Model):
     __tablename__ = 'shows'
-    id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False)
-    words = db.Column(db.ARRAY(db.Integer))
+    id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False, index=True)
+    words = db.Column(db.ARRAY(db.String))
     episodes = db.relationship('Episode', backref='show')
 
     def __init__(self, id, words=None):
         self.id = id
         self.words = words
 
+
 class Episode(db.Model):
     __tablename__ = 'episodes'
-    episode_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    show_id = db.Column(db.Integer, db.ForeignKey(Show.id))
-    words = db.Column(db.ARRAY(db.Integer))
+    episode_no = db.Column(db.Integer, primary_key=True, index=True)
+    show_id = db.Column(db.Integer, db.ForeignKey(Show.id), index=True)
+    words = db.Column(db.ARRAY(db.String))
     subtitles = db.relationship('Subtitle', backref='episode')
     
-    def __init__(self, show_id, words=None):
+    def __init__(self, episode_no, show_id, words=None):
+        self.episode_no = episode_no
         self.show_id = show_id
         self.words = words
+
 
 class Subtitle(db.Model):
     __tablename__ = 'subtitles'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    episode_id = db.Column(db.Integer, db.ForeignKey(Episode.episode_id))
+    episode_no = db.Column(db.Integer, db.ForeignKey(Episode.episode_no))
     name = db.Column(db.String)
     link = db.Column(db.String)
 
-    def __init__(self, episode_id, name=None, link=None):
-        self.episode_id = episode_id
+    def __init__(self, episode_no, name=None, link=None):
+        self.episode_no = episode_no
         self.name = name
         self.link = link
 
@@ -74,6 +80,56 @@ class Subtitle(db.Model):
 def hello():
     return "Hello, world!"
 
-@app.route('/analyze', methods=['POST'])
-def analyze():
-    return "PLACEHOLDER"
+
+@app.route('/check_episode', methods=['GET'])
+@cross_origin
+def checkEp():
+    showId = int(request.args.get('anilist_id'))
+    episodeNo = int(request.args.get('episode'))
+    if Show.query.filter(Show.id == showId).count() == 0:
+        showToInsert = Show(showId)
+        db.session.add(showToInsert)
+        db.session.commit()
+    if Episode.query.filter(Episode.episode_no == episodeNo, Episode.show_id == showId).count() == 0:
+        return Response(response=json.dumps({ "episode_exists": False }, mimetype='application/json'))
+    else:
+        return Response(response=json.dumps({ "episode_exists": True}, mimetype='application/json'))
+
+
+@app.route('/analyze_episode', methods=['POST'])
+@cross_origin
+def analyzeEp():
+    text = request.form['data']
+    resultDict = jpWordExtract(text)
+
+    allWords = []
+    for word in resultDict:
+        allWords.append(word)
+    
+    showId = int(request.args.get('anilist_id'))
+    episodeNo = int(request.args.get('episode'))
+
+    episodeToInsert = Episode(showId, episodeNo, allWords)
+    db.session.add(episodeToInsert)
+    db.session.commit()
+
+    for subtitle in request.form['sub']:
+        subtitleName = subtitle['name']
+        subtitleLink = subtitle['link']
+        subtitle = Subtitle(episodeNo, subtitleName, subtitleLink)
+        db.session.add(subtitle)
+    db.session.commit()
+    
+    return Response(response=json.dumps(allWords), mimetype='application/json')
+
+
+@app.route('/get_episode', methods=['GET'])
+@cross_origin
+def getEp():
+    return Response(response=json.dumps({"placeholder": "here"}), mimetype='application/json')
+#for word in resultDict:
+    #    results = Word.query.filter(word == any_(Word.keb)).all()
+    #    if not results:
+    #        results = Word.query.filter(word == any_(Word.reb), Word.keb =='{}').all()
+    #    for result in results:
+    #        allFoundIds.append(result.id)
