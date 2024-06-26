@@ -126,10 +126,25 @@ def analyzeEp():
 @app.route('/get_episode', methods=['GET'])
 @cross_origin
 def getEp():
-    return Response(response=json.dumps({"placeholder": "here"}), mimetype='application/json')
-#for word in resultDict:
-    #    results = Word.query.filter(word == any_(Word.keb)).all()
-    #    if not results:
-    #        results = Word.query.filter(word == any_(Word.reb), Word.keb =='{}').all()
-    #    for result in results:
-    #        allFoundIds.append(result.id)
+    showId = int(request.args.get('anilist_id'))
+    episodeNo = int(request.args.get('episode'))
+    offset = int(request.args.get('offset'))
+
+    words = Episode.query.filter(Episode.episode_no == episodeNo, Episode.show_id == showId).first()
+    if words is None:
+        return Response(response=json.dumps({ "error": "The requested episode was not found." }))
+    
+    numberOfWords = len(words.words)
+
+    allWords = []
+
+    for i in range(0 + offset, 20 + offset):
+        if i > numberOfWords:
+            break
+        results = Word.query.filter(words.words[i] == any_(Word.keb)).all()
+        if not results:
+            results = Word.query.filter(words.words[i] == any_(Word.reb), Word.keb =='{}').all()
+        for result in results:
+            allWords.append(result)
+
+    return Response(response=json.dumps({ "words": allWords }), mimetype='application/json')
