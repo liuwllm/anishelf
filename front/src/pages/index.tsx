@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Inter } from "next/font/google";
+import { Search } from "@/components/ui/search";
 import Results from "@/components/results";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -7,8 +8,9 @@ const inter = Inter({ subsets: ["latin"] });
 export default function Home() {
   return (
     <main
-      className={`flex bg-slate-100 min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
+      className={`flex bg-slate-100 min-h-screen flex-col gap-10 items-center justify-between px-48 py-24 ${inter.className}`}
     >
+      <Search />
       <Results />
     </main>
   );
