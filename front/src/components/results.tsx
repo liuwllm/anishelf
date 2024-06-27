@@ -1,6 +1,7 @@
 import { Search } from "@/components/ui/search";
 import { Button } from "@/components/ui/button";
-import { React, useEffect, useState } from "react"; 
+import React, { useEffect, useState } from "react"; 
+import Link from "next/link";
 
 interface AnimeSeries {
     id: number;
@@ -8,15 +9,8 @@ interface AnimeSeries {
         english: string;
         romaji: string;
     }
-    description: string;
-    averageScore: number;
-    episodes: number;
-    genres: string[];
     coverImage: {
-        extraLarge: string;
         large: string;
-        medium: string;
-        color: string;
     }
 }
 
@@ -29,13 +23,13 @@ export default function Results() {
         setTerm(e.target.value);
     }
 
-    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>): void => {
         if (e.key === 'Enter'){
-            setFullTerm(e.target.value);
+            setFullTerm(e.currentTarget.value);
         }
     }
 
-    const handleSubmit = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>): void => {
         setFullTerm(term);
     }
 
@@ -53,15 +47,8 @@ export default function Results() {
                                 english
                                 romaji
                             }
-                            description
-                            averageScore
-                            episodes
-                            genres
                             coverImage {
-                                extraLarge
                                 large
-                                medium
-                                color
                             }
                         }
                     }
@@ -78,15 +65,8 @@ export default function Results() {
                             english
                             romaji
                         }
-                        description
-                        averageScore
-                        episodes
-                        genres
                         coverImage {
-                            extraLarge
                             large
-                            medium
-                            color
                         }
                     }
                     }
@@ -130,8 +110,10 @@ export default function Results() {
             <div className="grid grid-cols-6 gap-x-16 gap-y-8">
                 {anime.map((anime) => (
                 <div className="flex flex-col items-left gap-3">
-                    <div className="aspect-cover relative overflow-hidden rounded-md shadow-lg">
-                        <img src={anime.coverImage.large} className="object-cover h-full w-full"></img>
+                    <div className="aspect-cover relative overflow-hidden rounded-md shadow-lg hover:ring-4">
+                        <Link href={`/anime/${anime.id}`}>
+                            <img src={anime.coverImage.large} className="object-cover h-full w-full"></img>
+                        </Link>
                     </div>
                     <h1 className="text-slate-500 font-semibold text-md">{anime.title.english ? anime.title.english : anime.title.romaji}</h1>
                 </div>
