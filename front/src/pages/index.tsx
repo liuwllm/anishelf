@@ -10,7 +10,6 @@ export default function Home() {
     <main
       className={`flex bg-slate-100 min-h-screen flex-col gap-10 items-center justify-between px-48 py-24 ${inter.className}`}
     >
-      <Search />
       <Results />
     </main>
   );
