@@ -1,4 +1,10 @@
+import { Interweave } from 'interweave';
+import { polyfill } from 'interweave-ssr';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ReactNode } from 'react';
+import Episode from "@/components/animeEntry/episode"
 
 interface AnimePageProps {
     data: AnimeShow
@@ -16,11 +22,10 @@ interface AnimeShow {
     popularity: number;
     genres: string[];
     coverImage: {
-        large: string;
+        extraLarge: string;
         color: string;
     }
 }
-
 
 export const getServerSideProps: GetServerSideProps = async (context: GetServerSidePropsContext) => {
     const id = context.query.id
@@ -39,7 +44,7 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
                 popularity
                 genres
                 coverImage {
-                    large
+                    extraLarge
                     color
                 }
             }
@@ -70,8 +75,43 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
 }
 
 export default function Show({ data }: AnimePageProps) {
+    polyfill();
+    
     return (
-        <div>{data.title.romaji}</div>
+        <div className="flex min-h-screen bg-slate-100 px-48 py-24 gap-12">
+            <div className="flex flex-col gap-4">
+                <div className="aspect-cover relative overflow-hidden rounded-md shadow-lg">
+                    <img src={data.coverImage.extraLarge} className="object-cover w-72"></img>
+                </div>
+                <div className="flex flex-row flex-wrap gap-4">
+                    {data.genres.map((genre: string): ReactNode => {
+                        return(
+                            <Badge key={genre}>{genre}</Badge>
+                        )
+                    })}
+                </div>
+                <p className="text-lg text-slate-800">
+                    <span className="font-bold">Average Score: </span>
+                    {data.averageScore}
+                </p>
+                <p className="text-lg text-slate-800">
+                    <span className="font-bold">Popularity: </span>
+                    {data.popularity}
+                </p>
+            </div>
+            <div className="flex flex-col gap-4 w-fit">
+                <div className="flex flex-row justify-between w-full h-min">
+                    <h1 className="font-bold text-5xl text-slate-800">{data.title.english ? data.title.english: data.title.romaji}</h1>
+                    <div className="flex items-center gap-4">
+                        <Button>Export All Cards</Button>
+                        <Button>Customize Vocabulary</Button>
+                    </div>
+                </div>
+                <p className="text-lg text-slate-800 w-fit"><Interweave content={data.description} /></p>
+                <h2 className="font-bold text-3xl text-slate-800 mt-4">Episodes</h2>
+                <Episode count={data.episodes} id={data.id} />
+            </div>
+        </div>
     )
 }
 

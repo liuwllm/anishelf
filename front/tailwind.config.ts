@@ -73,7 +73,7 @@ const config = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       aspectRatio: {
-        "cover": '250 / 350'
+        "cover": '260 / 350'
       }
     },
   },
