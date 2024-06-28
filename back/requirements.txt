@@ -8,3 +8,4 @@ regex
 python-dotenv
 Flask-Migrate
 unidic-lite
+requests

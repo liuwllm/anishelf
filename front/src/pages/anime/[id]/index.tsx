@@ -7,7 +7,8 @@ import { ReactNode } from 'react';
 import Episode from "@/components/animeEntry/episode"
 
 interface AnimePageProps {
-    data: AnimeShow
+    data: AnimeShow;
+    key: string;
 }
 
 interface AnimeShow {
@@ -29,7 +30,7 @@ interface AnimeShow {
 
 export const getServerSideProps: GetServerSideProps = async (context: GetServerSidePropsContext) => {
     const id = context.query.id
-    
+
     const query = `
         query ($id: Int) {
             Media(id: $id) {
