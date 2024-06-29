@@ -9,3 +9,4 @@ python-dotenv
 Flask-Migrate
 unidic-lite
 requests
+pysubs2

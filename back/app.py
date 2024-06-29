@@ -209,6 +209,13 @@ def get_episode():
     
     vocabToSearch = EpisodeWord.query.filter(EpisodeWord.episode_id == episode.id).order_by(desc(EpisodeWord.frequency)).limit(20).offset(offset).all()
 
+    prev = False
+    next = False
+    if offset != 0:
+        prev = True
+    if EpisodeWord.query.filter(EpisodeWord.episode_id == episode.id).count() > (offset + 20):
+        next = True
+
     finalVocab = []
     for vocab in vocabToSearch:
         kebFind = Word.query.filter(vocab.word == any_(Word.keb)).all()
@@ -235,5 +242,4 @@ def get_episode():
                     'sense': word.sense
                 })
 
-    print(finalVocab)
-    return Response(response=json.dumps(finalVocab), mimetype='application/json')
+    return Response(response=json.dumps({ "vocab": finalVocab, "prev": prev, "next": next}), mimetype='application/json')

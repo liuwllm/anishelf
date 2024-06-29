@@ -5,9 +5,10 @@ import Link from "next/link";
 interface EpisodeProps {
     count: number;
     id: number;
+    title: string;
 }
 
-export default function Episode({ count, id }: EpisodeProps) {
+export default function Episode({ count, id, title }: EpisodeProps) {
     const episodeNumbers: number[] = [];
   
     for (let i = 1; i <= count; i++) {
@@ -25,8 +26,8 @@ export default function Episode({ count, id }: EpisodeProps) {
                                 <div className="flex gap-4">
                                     <Button>Download Subtitles</Button>
                                     <Button>Export Cards</Button>
-                                    <Link href={`/anime/${id}/episode/${episode}?offset=0`}>
-                                        <Button>Customize Vocabulary</Button>
+                                    <Link href={`/anime/${id}/episode/${episode}?offset=0&title=${title}`}>
+                                        <Button>Vocabulary List</Button>
                                     </Link>
                                 </div>
                             </div>

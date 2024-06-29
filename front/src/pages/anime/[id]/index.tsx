@@ -4,7 +4,8 @@ import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ReactNode } from 'react';
-import Episode from "@/components/animeEntry/episode"
+import Episode from "@/components/animeEntry/episode";
+import Logo from "@/components/logo";
 
 interface AnimePageProps {
     data: AnimeShow;
@@ -77,40 +78,51 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
 
 export default function Show({ data }: AnimePageProps) {
     polyfill();
+
+    let title = "";
+    if (data.title.english) {
+        title = data.title.english;
+    }
+    else {
+        title = data.title.romaji
+    }
     
     return (
-        <div className="flex min-h-screen bg-slate-100 px-48 py-24 gap-12">
-            <div className="flex flex-col gap-4">
-                <div className="aspect-cover relative overflow-hidden rounded-md shadow-lg">
-                    <img src={data.coverImage.extraLarge} className="object-cover w-72"></img>
-                </div>
-                <div className="flex flex-row flex-wrap gap-4">
-                    {data.genres.map((genre: string): ReactNode => {
-                        return(
-                            <Badge key={genre}>{genre}</Badge>
-                        )
-                    })}
-                </div>
-                <p className="text-lg text-slate-800">
-                    <span className="font-bold">Average Score: </span>
-                    {data.averageScore}
-                </p>
-                <p className="text-lg text-slate-800">
-                    <span className="font-bold">Popularity: </span>
-                    {data.popularity}
-                </p>
-            </div>
-            <div className="flex flex-col gap-4 w-fit">
-                <div className="flex flex-row justify-between w-full h-min">
-                    <h1 className="font-bold text-5xl text-slate-800">{data.title.english ? data.title.english: data.title.romaji}</h1>
-                    <div className="flex items-center gap-4">
-                        <Button>Export All Cards</Button>
-                        <Button>Customize Vocabulary</Button>
+        <div className="flex gap-12 flex-col min-h-screen bg-slate-100 px-48 py-12">
+            <Logo />
+            <div className="flex gap-12">
+                <div className="flex flex-col gap-4 w-72">
+                    <div className="aspect-cover relative overflow-hidden rounded-md w-72 shadow-lg">
+                        <img src={data.coverImage.extraLarge} className="object-cover w-fit"></img>
                     </div>
+                    <div className="flex flex-row flex-wrap gap-4">
+                        {data.genres.map((genre: string): ReactNode => {
+                            return(
+                                <Badge key={genre}>{genre}</Badge>
+                            )
+                        })}
+                    </div>
+                    <p className="text-lg text-slate-800">
+                        <span className="font-bold">Average Score: </span>
+                        {data.averageScore}
+                    </p>
+                    <p className="text-lg text-slate-800">
+                        <span className="font-bold">Popularity: </span>
+                        {data.popularity}
+                    </p>
                 </div>
-                <p className="text-lg text-slate-800 w-fit"><Interweave content={data.description} /></p>
-                <h2 className="font-bold text-3xl text-slate-800 mt-4">Episodes</h2>
-                <Episode count={data.episodes} id={data.id} />
+                <div className="flex flex-col gap-4 w-fit">
+                    <div className="flex flex-row justify-between w-full h-min">
+                        <h1 className="font-bold text-5xl text-slate-800">{data.title.english ? data.title.english: data.title.romaji}</h1>
+                        <div className="flex items-center gap-4">
+                            <Button>Export All Cards</Button>
+                            <Button>Vocabulary List</Button>
+                        </div>
+                    </div>
+                    <p className="text-lg text-slate-800 w-fit"><Interweave content={data.description} /></p>
+                    <h2 className="font-bold text-3xl text-slate-800 mt-4">Episodes</h2>
+                    <Episode count={data.episodes} id={data.id} title={title}/>
+                </div>
             </div>
         </div>
     )
