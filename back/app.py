@@ -1,10 +1,13 @@
+import os
 import json
 import requests
 import config
+import pysubs2
 from flask import Flask, Response, request
 from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.sql import any_
+from sqlalchemy.sql import any_, or_, and_
+from sqlalchemy import desc
 from flask_migrate import Migrate
 
 from jp_parse import jpWordExtract
@@ -40,12 +43,10 @@ class Word(db.Model):
 class Show(db.Model):
     __tablename__ = 'shows'
     id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False, index=True)
-    words = db.Column(db.ARRAY(db.String))
     episodes = db.relationship('Episode', backref='show')
 
-    def __init__(self, id, words=None):
+    def __init__(self, id):
         self.id = id
-        self.words = words
 
 
 class Episode(db.Model):
@@ -53,13 +54,12 @@ class Episode(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     episode_no = db.Column(db.Integer, index=True)
     show_id = db.Column(db.Integer, db.ForeignKey(Show.id), index=True)
-    words = db.Column(db.ARRAY(db.String))
     subtitles = db.relationship('Subtitle', backref='episode')
+    words = db.relationship('EpisodeWord', backref='episode')
     
-    def __init__(self, episode_no, show_id, words=None):
+    def __init__(self, episode_no=None, show_id=None):
         self.episode_no = episode_no
         self.show_id = show_id
-        self.words = words
 
 
 class Subtitle(db.Model):
@@ -68,11 +68,27 @@ class Subtitle(db.Model):
     episode_id = db.Column(db.Integer, db.ForeignKey(Episode.id))
     name = db.Column(db.String)
     link = db.Column(db.String)
+    last_modified = db.Column(db.String)
+    size = db.Column(db.Integer)
 
-    def __init__(self, episode_id, name=None, link=None):
+    def __init__(self, episode_id, name=None, link=None, last_modified=None, size=None):
         self.episode_id= episode_id
         self.name = name
         self.link = link
+        self.last_modified = last_modified
+        self.size = size
+
+class EpisodeWord(db.Model):
+    __tablename__ = 'episodewords'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    episode_id = db.Column(db.Integer, db.ForeignKey(Episode.id))
+    word = db.Column(db.String)
+    frequency = db.Column(db.Integer)
+
+    def __init__(self, episode_id=None, word=None, frequency=None):
+        self.episode_id = episode_id
+        self.word = word
+        self.frequency = frequency
 
 # Routes
 
@@ -132,11 +148,16 @@ def get_subtitles():
     # Insert subtitles and retrieve URL to parse
     for subtitle in filesResponse:
         if subtitle['url'].endswith(".ass") or subtitle['url'].endswith(".srt"):
-            link = subtitle['url']
             subtitleName = subtitle['name']
             subtitleLink = subtitle['url']
-            subtitleToInsert = Subtitle(episodeId, subtitleName, subtitleLink)
+            subtitleModified = subtitle['last_modified']
+            subtitleSize = subtitle['size']
+            subtitleToInsert = Subtitle(episodeId, subtitleName, subtitleLink, subtitleModified, subtitleSize)
             db.session.add(subtitleToInsert)
+        if subtitle['url'].endswith(".ass") and link == "":
+            link = subtitle['url']
+        elif subtitle['url'].endswith(".srt"):
+            link = subtitle['url']
     db.session.commit()
 
     return Response(response=json.dumps({ "subtitle_url": link }))
@@ -145,21 +166,34 @@ def get_subtitles():
 @app.route('/analyze_episode', endpoint='/analyze_episode', methods=['POST'])
 @cross_origin()
 def analyze_episode():
-    text = request.form['data']
-    resultDict = jpWordExtract(text)
-
-    allWords = []
-    for word in resultDict:
-        allWords.append(word)
-    
     showId = int(request.args.get('anilist_id'))
     episodeNo = int(request.args.get('episode'))
+    episodeId = Episode.query.with_entities(Episode.id).filter(Episode.episode_no == episodeNo, Episode.show_id == showId).first()[0]
+
+    subUrl = request.form['url']
+    subType = request.form['type']
+    subResponse = requests.get(subUrl).content
+
+    subPath = os.path.join(app.config['UPLOAD_FOLDER'], f'subtitle{subType}')
+
+    with open(subPath, 'wb') as file:
+        file.write(subResponse)
     
-    episode = Episode.query.filter(Episode.episode_no == episodeNo, Episode.show_id == showId).first()
-    episode.words = allWords
+    subs = pysubs2.load(subPath)
+    print(subs)
+
+    combinedText = ""
+    for line in subs:
+        combinedText += line.text
+
+    resultDict = jpWordExtract(combinedText)
+    
+    for word in resultDict:
+        episodeWord = EpisodeWord(episodeId, word, resultDict[word])
+        db.session.add(episodeWord)
     db.session.commit()
     
-    return Response(response=json.dumps(allWords), mimetype='application/json')
+    return Response(response=json.dumps(resultDict), mimetype='application/json')
 
 
 @app.route('/get_episode', endpoint='/get_episode', methods=['GET'])
@@ -169,21 +203,37 @@ def get_episode():
     episodeNo = int(request.args.get('episode'))
     offset = int(request.args.get('offset'))
 
-    words = Episode.query.filter(Episode.episode_no == episodeNo, Episode.show_id == showId).first()
-    if words is None:
+    episode = Episode.query.filter(Episode.episode_no == episodeNo, Episode.show_id == showId).first()
+    if episode is None:
         return Response(response=json.dumps({ "error": "The requested episode was not found." }), mimetype='application/json')
     
-    numberOfWords = len(words.words)
+    vocabToSearch = EpisodeWord.query.filter(EpisodeWord.episode_id == episode.id).order_by(desc(EpisodeWord.frequency)).limit(20).offset(offset).all()
 
-    allWords = []
+    finalVocab = []
+    for vocab in vocabToSearch:
+        kebFind = Word.query.filter(vocab.word == any_(Word.keb)).all()
+        if kebFind:
+            for word in kebFind:
+                finalVocab.append({
+                    'id': word.id,
+                    'keb': word.keb,
+                    'reb': word.reb,
+                    'sense': word.sense
+                })
+        else:
+            rebFind = Word.query.filter(
+                and_(
+                    vocab.word == any_(Word.reb), 
+                    Word.keb == '{}'
+                )
+            ).all()
+            for word in rebFind:
+                finalVocab.append({
+                    'id': word.id,
+                    'keb': word.keb,
+                    'reb': word.reb,
+                    'sense': word.sense
+                })
 
-    for i in range(0 + offset, 20 + offset):
-        if i > numberOfWords:
-            break
-        results = Word.query.filter(words.words[i] == any_(Word.keb)).all()
-        if not results:
-            results = Word.query.filter(words.words[i] == any_(Word.reb), Word.keb =='{}').all()
-        for result in results:
-            allWords.append(result)
-
-    return Response(response=json.dumps({ "words": allWords }), mimetype='application/json')
+    print(finalVocab)
+    return Response(response=json.dumps(finalVocab), mimetype='application/json')

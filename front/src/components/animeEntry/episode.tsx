@@ -25,7 +25,7 @@ export default function Episode({ count, id }: EpisodeProps) {
                                 <div className="flex gap-4">
                                     <Button>Download Subtitles</Button>
                                     <Button>Export Cards</Button>
-                                    <Link href={`/anime/${id}/episode/${episode}`}>
+                                    <Link href={`/anime/${id}/episode/${episode}?offset=0`}>
                                         <Button>Customize Vocabulary</Button>
                                     </Link>
                                 </div>

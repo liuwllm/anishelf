@@ -1,10 +1,13 @@
 import MeCab
 import regex as re
 
+
 def jpWordExtract(text):
     # Use Wakati to parse text and segment
+    jpText = text.replace(" ", "")
     wakati = MeCab.Tagger("-Owakati")
-    wordList = wakati.parse(text).split()
+    wordList = wakati.parse(jpText)
+    wordList = wordList.split()
     wordDict = {}
 
     # Counts frequency of each word and collects info to dictionary
