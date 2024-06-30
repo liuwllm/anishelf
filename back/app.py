@@ -329,3 +329,24 @@ def export_show():
 
     return Response(response=json.dumps(finalVocab), mimetype='application/json')
 '''
+
+@app.route('/download_subtitles', endpoint='/download_subtitles', methods=['GET'])
+@cross_origin()
+def download_subtitles():
+    showId = int(request.args.get('anilist_id'))
+    episodeNo = int(request.args.get('episode'))
+
+    episode = Episode.query.filter(Episode.episode_no == episodeNo, Episode.show_id == showId).first()
+    subtitles = Subtitle.query.filter(Subtitle.episode_id == episode.id).all()
+
+    res = []
+    for subtitle in subtitles:
+        res.append({
+            "id": subtitle.id,
+            "name": subtitle.name,
+            "link": subtitle.link,
+            "size": subtitle.size,
+            "last_modified": subtitle.last_modified
+        })
+    
+    return Response(response=json.dumps(res), mimetype='application/json')

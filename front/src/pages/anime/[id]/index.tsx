@@ -2,11 +2,9 @@ import { Interweave } from 'interweave';
 import { polyfill } from 'interweave-ssr';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ReactNode } from 'react';
 import Episode from "@/components/animeEntry/episode";
 import Logo from "@/components/logo";
-import Link from "next/link";
 
 interface AnimePageProps {
     data: AnimeShow;
