@@ -93,7 +93,7 @@ export default function Show({ data }: AnimePageProps) {
             <div className="flex gap-12">
                 <div className="flex flex-col gap-4 w-72">
                     <div className="aspect-cover relative overflow-hidden rounded-md w-72 shadow-lg">
-                        <Image src={data.coverImage.extraLarge} className="object-cover w-fit" alt={title}/>
+                        <img src={data.coverImage.extraLarge} className="object-cover w-fit" alt={title}></img>
                     </div>
                     <div className="flex flex-row flex-wrap gap-4">
                         {data.genres.map((genre: string): ReactNode => {

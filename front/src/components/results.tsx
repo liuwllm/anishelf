@@ -113,7 +113,7 @@ export default function Results() {
                 <div className="flex flex-col items-left gap-3" key={anime.id}>
                     <div className="aspect-cover relative overflow-hidden rounded-md shadow-lg hover:ring-4">
                         <Link href={`/anime/${anime.id}`}>
-                            <Image src={anime.coverImage.large} className="object-cover h-full w-full" alt={anime.title.english ? anime.title.english : anime.title.romaji} />
+                            <img src={anime.coverImage.large} className="object-cover h-full w-full" alt={anime.title.english ? anime.title.english : anime.title.romaji}></img>
                         </Link>
                     </div>
                     <h1 className="text-slate-500 font-semibold text-md">{anime.title.english ? anime.title.english : anime.title.romaji}</h1>
