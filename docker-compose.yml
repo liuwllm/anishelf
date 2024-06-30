@@ -1,17 +1,4 @@
 services:
-  nextapp:
-    container_name: nextapp
-    image: nextapp:latest
-    build:
-      context: ./front
-      dockerfile: next.dockerfile
-    ports:
-      - 3000:3000
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:3000
-    depends_on:
-      - flaskapp
-  
   flaskapp:
     container_name: flaskapp
     image: flaskapp:latest

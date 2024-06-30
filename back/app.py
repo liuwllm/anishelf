@@ -176,8 +176,6 @@ def get_subtitles():
     filesParams = { "episode": episodeNo }
     filesResponse = requests.get(filesUrl, headers=filesHeader, params=filesParams).json()
 
-    link = ""
-
     # Insert subtitles and retrieve URL to parse
     for subtitle in filesResponse:
         if subtitle['url'].endswith(".ass") or subtitle['url'].endswith(".srt"):
@@ -187,10 +185,9 @@ def get_subtitles():
             subtitleSize = subtitle['size']
             subtitleToInsert = Subtitle(episodeId, subtitleName, subtitleLink, subtitleModified, subtitleSize)
             db.session.add(subtitleToInsert)
-        if subtitle['url'].endswith(".ass") and link == "":
-            link = subtitle['url']
-        elif subtitle['url'].endswith(".srt"):
-            link = subtitle['url']
+
+    link = Subtitle.query.filter(Subtitle.episode_id == episodeId).first().link
+
     db.session.commit()
 
     return Response(response=json.dumps({ "subtitle_url": link }))
