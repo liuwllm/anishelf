@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ReactNode } from 'react';
 import Episode from "@/components/animeEntry/episode";
 import Logo from "@/components/logo";
+import Image from 'next/image';
 
 interface AnimePageProps {
     data: AnimeShow;
@@ -92,7 +93,7 @@ export default function Show({ data }: AnimePageProps) {
             <div className="flex gap-12">
                 <div className="flex flex-col gap-4 w-72">
                     <div className="aspect-cover relative overflow-hidden rounded-md w-72 shadow-lg">
-                        <img src={data.coverImage.extraLarge} className="object-cover w-fit"></img>
+                        <Image src={data.coverImage.extraLarge} className="object-cover w-fit" alt={title}/>
                     </div>
                     <div className="flex flex-row flex-wrap gap-4">
                         {data.genres.map((genre: string): ReactNode => {
