@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ReactNode } from 'react';
 import Episode from "@/components/animeEntry/episode";
 import Logo from "@/components/logo";
+import Link from "next/link";
 
 interface AnimePageProps {
     data: AnimeShow;
@@ -112,12 +113,8 @@ export default function Show({ data }: AnimePageProps) {
                     </p>
                 </div>
                 <div className="flex flex-col gap-4 w-fit">
-                    <div className="flex flex-row justify-between w-full h-min">
+                    <div className="flex flex-row w-full h-min">
                         <h1 className="font-bold text-5xl text-slate-800">{data.title.english ? data.title.english: data.title.romaji}</h1>
-                        <div className="flex items-center gap-4">
-                            <Button>Export All Cards</Button>
-                            <Button>Vocabulary List</Button>
-                        </div>
                     </div>
                     <p className="text-lg text-slate-800 w-fit"><Interweave content={data.description} /></p>
                     <h2 className="font-bold text-3xl text-slate-800 mt-4">Episodes</h2>

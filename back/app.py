@@ -7,7 +7,7 @@ from flask import Flask, Response, request
 from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import any_, or_, and_
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from flask_migrate import Migrate
 
 from jp_parse import jpWordExtract
@@ -44,6 +44,7 @@ class Show(db.Model):
     __tablename__ = 'shows'
     id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False, index=True)
     episodes = db.relationship('Episode', backref='show')
+    episodewords = db.relationship('EpisodeWord', backref='show')
 
     def __init__(self, id):
         self.id = id
@@ -81,14 +82,46 @@ class Subtitle(db.Model):
 class EpisodeWord(db.Model):
     __tablename__ = 'episodewords'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    show_id = db.Column(db.Integer, db.ForeignKey(Show.id))
     episode_id = db.Column(db.Integer, db.ForeignKey(Episode.id))
     word = db.Column(db.String)
     frequency = db.Column(db.Integer)
 
-    def __init__(self, episode_id=None, word=None, frequency=None):
+    def __init__(self, show_id=None, episode_id=None, word=None, frequency=None):
+        self.show_id = show_id
         self.episode_id = episode_id
         self.word = word
         self.frequency = frequency
+
+# Utility functions
+def searchWords(vocabToSearch):
+    finalVocab = []
+    for vocab in vocabToSearch:
+        kebFind = Word.query.filter(vocab.word == any_(Word.keb)).all()
+        if kebFind:
+            for word in kebFind:
+                finalVocab.append({
+                    'id': word.id,
+                    'keb': word.keb,
+                    'reb': word.reb,
+                    'sense': word.sense
+                })
+        else:
+            rebFind = Word.query.filter(
+                and_(
+                    vocab.word == any_(Word.reb), 
+                    Word.keb == '{}'
+                )
+            ).all()
+            for word in rebFind:
+                finalVocab.append({
+                    'id': word.id,
+                    'keb': word.keb,
+                    'reb': word.reb,
+                    'sense': word.sense
+                })
+    
+    return finalVocab
 
 # Routes
 
@@ -188,7 +221,7 @@ def analyze_episode():
     resultDict = jpWordExtract(combinedText)
     
     for word in resultDict:
-        episodeWord = EpisodeWord(episodeId, word, resultDict[word])
+        episodeWord = EpisodeWord(showId, episodeId, word, resultDict[word])
         db.session.add(episodeWord)
     db.session.commit()
     
@@ -215,31 +248,7 @@ def get_episode():
     if EpisodeWord.query.filter(EpisodeWord.episode_id == episode.id).count() > (offset + 20):
         next = True
 
-    finalVocab = []
-    for vocab in vocabToSearch:
-        kebFind = Word.query.filter(vocab.word == any_(Word.keb)).all()
-        if kebFind:
-            for word in kebFind:
-                finalVocab.append({
-                    'id': word.id,
-                    'keb': word.keb,
-                    'reb': word.reb,
-                    'sense': word.sense
-                })
-        else:
-            rebFind = Word.query.filter(
-                and_(
-                    vocab.word == any_(Word.reb), 
-                    Word.keb == '{}'
-                )
-            ).all()
-            for word in rebFind:
-                finalVocab.append({
-                    'id': word.id,
-                    'keb': word.keb,
-                    'reb': word.reb,
-                    'sense': word.sense
-                })
+    finalVocab = searchWords(vocabToSearch)
 
     return Response(response=json.dumps({ "vocab": finalVocab, "prev": prev, "next": next}), mimetype='application/json')
 
@@ -255,32 +264,68 @@ def export_episode():
     
     vocabToSearch = EpisodeWord.query.filter(EpisodeWord.episode_id == episode.id).order_by(desc(EpisodeWord.frequency)).all()
 
-    finalVocab = []
-    for vocab in vocabToSearch:
-        kebFind = Word.query.filter(vocab.word == any_(Word.keb)).all()
-        if kebFind:
-            for word in kebFind:
-                finalVocab.append({
-                    'id': word.id,
-                    'keb': word.keb,
-                    'reb': word.reb,
-                    'sense': word.sense
-                })
-        else:
-            rebFind = Word.query.filter(
-                and_(
-                    vocab.word == any_(Word.reb), 
-                    Word.keb == '{}'
-                )
-            ).all()
-            for word in rebFind:
-                finalVocab.append({
-                    'id': word.id,
-                    'keb': word.keb,
-                    'reb': word.reb,
-                    'sense': word.sense
-                })
-        
-    print(finalVocab)
+    finalVocab = searchWords(vocabToSearch)
 
     return Response(response=json.dumps(finalVocab), mimetype='application/json')
+'''
+@app.route('/get_show', endpoint='/get_show', methods=['GET'])
+@cross_origin()
+def get_show():
+    showId = int(request.args.get('anilist_id'))
+    offset = int(request.args.get('offset'))
+    
+    vocabToSearch = db.session.query(
+        EpisodeWord.episode_id,
+        EpisodeWord.word,
+        func.sum(EpisodeWord.frequency).label('total_frequency')
+    ).filter(
+        EpisodeWord.show_id == showId
+    ).group_by(
+        EpisodeWord.episode_id,
+        EpisodeWord.word
+    ).order_by(
+        desc(EpisodeWord.frequency)
+    ).limit(20).offset(offset).all()
+
+    prev = False
+    next = False
+    if offset != 0:
+        prev = True
+    if db.session.query(
+        EpisodeWord.episode_id,
+        EpisodeWord.word,
+        func.sum(EpisodeWord.frequency).label('total_frequency')
+    ).filter(
+        EpisodeWord.show_id == showId
+    ).group_by(
+        EpisodeWord.episode_id,
+        EpisodeWord.word
+    ).count() > (offset + 20):
+        next = True
+
+    finalVocab = searchWords(vocabToSearch)
+
+    return Response(response=json.dumps({ "vocab": finalVocab, "prev": prev, "next": next}), mimetype='application/json')
+
+@app.route('/export_show', endpoint='/export_show', methods=['GET'])
+@cross_origin()
+def export_show():
+    showId = int(request.args.get('anilist_id'))
+    
+    vocabToSearch = db.session.query(
+        EpisodeWord.episode_id,
+        EpisodeWord.word,
+        func.sum(EpisodeWord.frequency).label('total_frequency')
+    ).filter(
+        EpisodeWord.show_id == showId
+    ).group_by(
+        EpisodeWord.episode_id,
+        EpisodeWord.word
+    ).order_by(
+        desc(EpisodeWord.frequency)
+    ).all()
+
+    finalVocab = searchWords(vocabToSearch)
+
+    return Response(response=json.dumps(finalVocab), mimetype='application/json')
+'''

@@ -16,35 +16,20 @@ interface VocabPageProps {
     data: Data;
     title: string;
     show_id: string;
-    ep_id: string;
     offset: string;
 }
 
 export const getServerSideProps: GetServerSideProps = async (context: GetServerSidePropsContext) => {
     let show_id: string = context.query.id as string;
-    let ep_id: string = context.query.ep_id as string;
     let offset: string = context.query.offset as string;
     let title: string = context.query.title as string;
+    let num_ep: string = context.query.num_ep as string;
 
-    const checkEpisodeRes = await fetch(
-        "http://127.0.0.1:5000/check_episode?" + new URLSearchParams({
-            anilist_id: show_id,
-            episode: ep_id,
-        }),
-        {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        }
-    )
-    const checkEpisodeData = await checkEpisodeRes.json();
-
-    if (checkEpisodeData.episode_exists === false) {
-        const getSubtitleRes = await fetch(
-            "http://127.0.0.1:5000/get_subtitles?" + new URLSearchParams({
+    for (let i = 1; i <= parseInt(num_ep); i++) {
+        const checkEpisodeRes = await fetch(
+            "http://127.0.0.1:5000/check_episode?" + new URLSearchParams({
                 anilist_id: show_id,
-                episode: ep_id,
+                episode: i.toString(),
             }),
             {
                 method: 'GET',
@@ -53,34 +38,49 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
                 }
             }
         )
-        const getSubtitleData = await getSubtitleRes.json();
-        const subUrl = getSubtitleData.subtitle_url;
-        
-        const formData = new FormData();
-        formData.append('url', subUrl);
-        if (subUrl.endsWith('.srt')) {
-            formData.append('type', '.srt')
-        }
-        else if (subUrl.endsWith('.ass')) {
-            formData.append('type', '.ass')
-        }
+        const checkEpisodeData = await checkEpisodeRes.json();
 
-        const analysisRes = await fetch(
-            "http://127.0.0.1:5000/analyze_episode?" + new URLSearchParams({
-                anilist_id: show_id,
-                episode: ep_id,
-            }),
-            {
-                method: 'POST',
-                body: formData
+        if (checkEpisodeData.episode_exists === false) {
+            const getSubtitleRes = await fetch(
+                "http://127.0.0.1:5000/get_subtitles?" + new URLSearchParams({
+                    anilist_id: show_id,
+                    episode: i.toString(),
+                }),
+                {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            )
+            const getSubtitleData = await getSubtitleRes.json();
+            const subUrl = getSubtitleData.subtitle_url;
+            
+            const formData = new FormData();
+            formData.append('url', subUrl);
+            if (subUrl.endsWith('.srt')) {
+                formData.append('type', '.srt')
             }
-        )
+            else if (subUrl.endsWith('.ass')) {
+                formData.append('type', '.ass')
+            }
+
+            const analysisRes = await fetch(
+                "http://127.0.0.1:5000/analyze_episode?" + new URLSearchParams({
+                    anilist_id: show_id,
+                    episode: i.toString(),
+                }),
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            )
+        }
     }
 
     const lookupRes = await fetch(
-        "http://127.0.0.1:5000/get_episode?" + new URLSearchParams({
+        "http://127.0.0.1:5000/get_show?" + new URLSearchParams({
             anilist_id: show_id,
-            episode: ep_id,
             offset: offset
         }),
         {
@@ -95,10 +95,10 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
     console.log(data);
 
     // Pass data to the page via props
-    return { props: { data, title, show_id, ep_id, offset } }
+    return { props: { data, title, show_id, offset } }
 }
 
-export default function Vocab({ data, title, show_id, ep_id, offset }: VocabPageProps) {
+export default function Vocab({ data, title, show_id, offset }: VocabPageProps) {
     return (
         <div className=" flex flex-col">
             <div className="flex flex-col px-48 py-12 gap-4 min-h-screen bg-slate-100">
@@ -110,12 +110,9 @@ export default function Vocab({ data, title, show_id, ep_id, offset }: VocabPage
                             <h1 className="text-4xl font-semibold">{title}</h1>
                         </div>
                     </Link>
-                    <Export id={show_id} episode={ep_id} />
                 </div>
-                <h2 className="text-3xl font-semibold text-slate-800">Episode {ep_id}</h2>
-                <h3 className="text-2xl font-medium text-slate-800">Vocabulary</h3>
+                <h2 className="text-2xl font-medium text-slate-800">Vocabulary</h2>
                 <CardGallery words={data.vocab} />
-                <NavBar prev={data.prev} next={data.next} id={show_id} episode={ep_id} title={title} offset={offset}/>
             </div>
         </div>
     )
