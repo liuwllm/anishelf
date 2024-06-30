@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Vocabulary } from "@/components/vocabulary/cardgallery";
 import { useState } from "react";
 import { LoaderCircle } from 'lucide-react';
 
@@ -6,7 +7,6 @@ interface ExportProps {
     id: string;
     episode: string;
 }
-
 
 export default function Export({ id, episode }: ExportProps ) {
     const [loading, setLoading] = useState<boolean>(false);
