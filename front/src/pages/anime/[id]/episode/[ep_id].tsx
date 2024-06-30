@@ -2,7 +2,7 @@ import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import CardGallery, { Vocabulary } from "@/components/vocabulary/cardgallery";
 import NavBar from "@/components/vocabulary/navbar";
 import Logo from "@/components/logo";
-import { Button } from "@/components/ui/button";
+import Export from "@/components/export";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Link from "next/link";
 
@@ -110,7 +110,7 @@ export default function Vocab({ data, title, show_id, ep_id, offset }: VocabPage
                             <h1 className="text-4xl font-semibold">{title}</h1>
                         </div>
                     </Link>
-                    <Button>Export Cards</Button>
+                    <Export id={show_id} episode={ep_id} />
                 </div>
                 <h2 className="text-2xl font-medium text-slate-800">Vocabulary</h2>
                 <CardGallery words={data.vocab} />

@@ -9,6 +9,7 @@ interface NavBarProps {
     id: string;
     episode: string;
     title: string;
+    offset: string;
 }
 
 interface NavButtonProps {

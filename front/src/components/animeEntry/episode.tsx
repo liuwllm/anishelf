@@ -1,6 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Export from "@/components/export";
 
 interface EpisodeProps {
     count: number;
@@ -25,7 +26,7 @@ export default function Episode({ count, id, title }: EpisodeProps) {
                                 <p className="text-md font-medium text-slate-500">Episode {episode}</p>
                                 <div className="flex gap-4">
                                     <Button>Download Subtitles</Button>
-                                    <Button>Export Cards</Button>
+                                    <Export id={id.toString()} episode={episode.toString()} />
                                     <Link href={`/anime/${id}/episode/${episode}?offset=0&title=${title}`}>
                                         <Button>Vocabulary List</Button>
                                     </Link>

@@ -180,7 +180,6 @@ def analyze_episode():
         file.write(subResponse)
     
     subs = pysubs2.load(subPath)
-    print(subs)
 
     combinedText = ""
     for line in subs:
@@ -243,3 +242,45 @@ def get_episode():
                 })
 
     return Response(response=json.dumps({ "vocab": finalVocab, "prev": prev, "next": next}), mimetype='application/json')
+
+@app.route('/export_episode', endpoint='/export_episode', methods=['GET'])
+@cross_origin()
+def export_episode():
+    showId = int(request.args.get('anilist_id'))
+    episodeNo = int(request.args.get('episode'))
+
+    episode = Episode.query.filter(Episode.episode_no == episodeNo, Episode.show_id == showId).first()
+    if episode is None:
+        return Response(response=json.dumps({ "error": "The requested episode was not found." }), mimetype='application/json')
+    
+    vocabToSearch = EpisodeWord.query.filter(EpisodeWord.episode_id == episode.id).order_by(desc(EpisodeWord.frequency)).all()
+
+    finalVocab = []
+    for vocab in vocabToSearch:
+        kebFind = Word.query.filter(vocab.word == any_(Word.keb)).all()
+        if kebFind:
+            for word in kebFind:
+                finalVocab.append({
+                    'id': word.id,
+                    'keb': word.keb,
+                    'reb': word.reb,
+                    'sense': word.sense
+                })
+        else:
+            rebFind = Word.query.filter(
+                and_(
+                    vocab.word == any_(Word.reb), 
+                    Word.keb == '{}'
+                )
+            ).all()
+            for word in rebFind:
+                finalVocab.append({
+                    'id': word.id,
+                    'keb': word.keb,
+                    'reb': word.reb,
+                    'sense': word.sense
+                })
+        
+    print(finalVocab)
+
+    return Response(response=json.dumps(finalVocab), mimetype='application/json')
