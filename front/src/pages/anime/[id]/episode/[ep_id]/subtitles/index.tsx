@@ -74,6 +74,11 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
         }
     )
     const data = await dlSubsRes.json();
+    
+    data.forEach((sub: Data) => {
+        const date = new Date(sub.last_modified).toLocaleString();
+        sub.last_modified = date
+    })
 
     return { props: { data, show_id, title } }
 }
@@ -104,7 +109,7 @@ export default function Show({ data, show_id, title }: SubtitlePageProps) {
                             <TableRow key={subtitle.id}>
                                 <TableCell>{subtitle.name}</TableCell>
                                 <TableCell>{subtitle.size} B</TableCell>
-                                <TableCell>{new Date(subtitle.last_modified).toLocaleString()}</TableCell>
+                                <TableCell>{subtitle.last_modified}</TableCell>
                                 <TableCell>
                                     <Link href={subtitle.link}>
                                         <Button>Download</Button>
