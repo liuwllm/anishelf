@@ -33,7 +33,7 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
     let title: string = context.query.title as string;
 
     const checkEpisodeRes = await fetch(
-        "http://127.0.0.1:5000/check_episode?" + new URLSearchParams({
+        `${process.env.NEXT_PUBLIC_BACK}check_episode?` + new URLSearchParams({
             anilist_id: show_id,
             episode: ep_id,
         }),
@@ -48,7 +48,7 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
 
     if (checkEpisodeData.episode_exists === false) {
         const getSubtitleRes = await fetch(
-            "http://127.0.0.1:5000/get_subtitles?" + new URLSearchParams({
+            `${process.env.NEXT_PUBLIC_BACK}get_subtitles?` + new URLSearchParams({
                 anilist_id: show_id,
                 episode: ep_id,
             }),
@@ -62,7 +62,7 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
     }
 
     const dlSubsRes = await fetch(
-        "http://127.0.0.1:5000/download_subtitles?" + new URLSearchParams({
+        `${process.env.NEXT_PUBLIC_BACK}download_subtitles?` + new URLSearchParams({
             anilist_id: show_id,
             episode: ep_id,
         }),

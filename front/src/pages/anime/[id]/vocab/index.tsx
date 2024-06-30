@@ -27,7 +27,7 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
 
     for (let i = 1; i <= parseInt(num_ep); i++) {
         const checkEpisodeRes = await fetch(
-            "http://127.0.0.1:5000/check_episode?" + new URLSearchParams({
+            `${process.env.NEXT_PUBLIC_BACK}check_episode?` + new URLSearchParams({
                 anilist_id: show_id,
                 episode: i.toString(),
             }),
@@ -42,7 +42,7 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
 
         if (checkEpisodeData.episode_exists === false) {
             const getSubtitleRes = await fetch(
-                "http://127.0.0.1:5000/get_subtitles?" + new URLSearchParams({
+                `${process.env.NEXT_PUBLIC_BACK}get_subtitles?` + new URLSearchParams({
                     anilist_id: show_id,
                     episode: i.toString(),
                 }),
@@ -66,7 +66,7 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
             }
 
             const analysisRes = await fetch(
-                "http://127.0.0.1:5000/analyze_episode?" + new URLSearchParams({
+                `${process.env.NEXT_PUBLIC_BACK}analyze_episode?` + new URLSearchParams({
                     anilist_id: show_id,
                     episode: i.toString(),
                 }),
@@ -79,7 +79,7 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
     }
 
     const lookupRes = await fetch(
-        "http://127.0.0.1:5000/get_show?" + new URLSearchParams({
+        `${process.env.NEXT_PUBLIC_BACK}get_show?` + new URLSearchParams({
             anilist_id: show_id,
             offset: offset
         }),

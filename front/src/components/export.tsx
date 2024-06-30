@@ -16,7 +16,7 @@ export default function Export({ id, episode }: ExportProps ) {
         setLoading(true);
 
         const checkEpisodeRes = await fetch(
-            "http://127.0.0.1:5000/check_episode?" + new URLSearchParams({
+            `${process.env.NEXT_PUBLIC_BACK}check_episode?` + new URLSearchParams({
                 anilist_id: id,
                 episode: episode,
             }),
@@ -31,7 +31,7 @@ export default function Export({ id, episode }: ExportProps ) {
     
         if (checkEpisodeData.episode_exists === false) {
             const getSubtitleRes = await fetch(
-                "http://127.0.0.1:5000/get_subtitles?" + new URLSearchParams({
+                `${process.env.NEXT_PUBLIC_BACK}get_subtitles?` + new URLSearchParams({
                     anilist_id: id,
                     episode: episode,
                 }),
@@ -55,7 +55,7 @@ export default function Export({ id, episode }: ExportProps ) {
             }
     
             const analysisRes = await fetch(
-                "http://127.0.0.1:5000/analyze_episode?" + new URLSearchParams({
+                `${process.env.NEXT_PUBLIC_BACK}analyze_episode?` + new URLSearchParams({
                     anilist_id: id,
                     episode: episode,
                 }),
@@ -67,7 +67,7 @@ export default function Export({ id, episode }: ExportProps ) {
         }
         
         const lookupRes = await fetch(
-            "http://127.0.0.1:5000/export_episode?" + new URLSearchParams({
+            `${process.env.NEXT_PUBLIC_BACK}export_episode?` + new URLSearchParams({
                 anilist_id: id,
                 episode: episode,
             }),
