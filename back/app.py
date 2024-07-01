@@ -94,33 +94,18 @@ class EpisodeWord(db.Model):
         self.frequency = frequency
 
 # Utility functions
-def searchWords(vocabToSearch):
+def searchWords(episode_id):
     finalVocab = []
-    for vocab in vocabToSearch:
-        kebFind = Word.query.filter(vocab.word == any_(Word.keb)).all()
-        if kebFind:
-            for word in kebFind:
-                finalVocab.append({
-                    'id': word.id,
-                    'keb': word.keb,
-                    'reb': word.reb,
-                    'sense': word.sense
-                })
-        else:
-            rebFind = Word.query.filter(
-                and_(
-                    vocab.word == any_(Word.reb), 
-                    Word.keb == '{}'
-                )
-            ).all()
-            for word in rebFind:
-                finalVocab.append({
-                    'id': word.id,
-                    'keb': word.keb,
-                    'reb': word.reb,
-                    'sense': word.sense
-                })
-    
+    db.session.query(EpisodeWord).join(
+        Word, 
+        or_(
+            (EpisodeWord.word == Word.keb.any()),
+            (and_(
+                (EpisodeWord.word == Word.reb.any()),
+                (Word.keb == '{}')
+            ))
+        )
+    ).filter(EpisodeWord.episode_id == episode_id).order_by(desc(EpisodeWord.frequency)).all()
     return finalVocab
 
 # Routes
@@ -214,6 +199,7 @@ def analyze_episode():
     combinedText = ""
     for line in subs:
         combinedText += line.text
+        print(line)
 
     resultDict = jpWordExtract(combinedText)
     
@@ -259,9 +245,7 @@ def export_episode():
     if episode is None:
         return Response(response=json.dumps({ "error": "The requested episode was not found." }), mimetype='application/json')
     
-    vocabToSearch = EpisodeWord.query.filter(EpisodeWord.episode_id == episode.id).order_by(desc(EpisodeWord.frequency)).all()
-
-    finalVocab = searchWords(vocabToSearch)
+    finalVocab = searchWords(episode.id)
 
     return Response(response=json.dumps(finalVocab), mimetype='application/json')
 '''
