@@ -95,16 +95,17 @@ class EpisodeWord(db.Model):
 
 # Utility functions
 def searchWords(episode_id):
-    finalVocab = db.session.query(EpisodeWord).join(
-        Word, 
-        or_(
-            (EpisodeWord.word == any_(Word.keb)),
-            (and_(
-                (EpisodeWord.word == any_(Word.reb)),
-                (Word.keb == '{}')
-            ))
-        )
-    ).filter(EpisodeWord.episode_id == episode_id).order_by(desc(EpisodeWord.frequency)).all()
+    epId = episode_id
+    query = """
+    SELECT COUNT(*)
+    FROM episodewords
+    JOIN words ON episodewords.word = ANY(words.keb) OR (episodewords.word = ANY(words.reb) AND words.keb = '{{}}')
+    WHERE episodewords.episode_id = {0};
+    """.format(epId)
+    finalVocab = db.session.execute(query)
+
+    print(finalVocab)
+
     return finalVocab
 
 # Routes
