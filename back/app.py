@@ -99,9 +99,9 @@ def searchWords(episode_id):
     db.session.query(EpisodeWord).join(
         Word, 
         or_(
-            (EpisodeWord.word == Word.keb.any()),
+            (EpisodeWord.word == any_(Word.keb)),
             (and_(
-                (EpisodeWord.word == Word.reb.any()),
+                (EpisodeWord.word == any_(Word.reb)),
                 (Word.keb == '{}')
             ))
         )
