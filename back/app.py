@@ -95,8 +95,7 @@ class EpisodeWord(db.Model):
 
 # Utility functions
 def searchWords(episode_id):
-    finalVocab = []
-    db.session.query(EpisodeWord).join(
+    finalVocab = db.session.query(EpisodeWord).join(
         Word, 
         or_(
             (EpisodeWord.word == any_(Word.keb)),
