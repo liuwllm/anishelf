@@ -7,7 +7,8 @@ from flask import Flask, Response, request
 from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import any_, or_, and_
-from sqlalchemy import desc, func
+from sqlalchemy.orm import aliased
+from sqlalchemy import desc, func, text
 from flask_migrate import Migrate
 
 from jp_parse import jpWordExtract
@@ -84,7 +85,7 @@ class EpisodeWord(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     show_id = db.Column(db.Integer, db.ForeignKey(Show.id))
     episode_id = db.Column(db.Integer, db.ForeignKey(Episode.id))
-    word = db.Column(db.String)
+    word = db.Column(db.String, index=True)
     frequency = db.Column(db.Integer)
 
     def __init__(self, show_id=None, episode_id=None, word=None, frequency=None):
@@ -94,19 +95,37 @@ class EpisodeWord(db.Model):
         self.frequency = frequency
 
 # Utility functions
-def searchWords(episode_id):
+def searchWords(episode_id, paginate, offset=None):
     epId = episode_id
-    query = """
-    SELECT COUNT(*)
-    FROM episodewords
-    JOIN words ON episodewords.word = ANY(words.keb) OR (episodewords.word = ANY(words.reb) AND words.keb = '{{}}')
-    WHERE episodewords.episode_id = {0};
-    """.format(epId)
-    finalVocab = db.session.execute(query)
 
-    print(finalVocab)
+    finalVocab = EpisodeWord.query.with_entities(
+            Word.id,
+            Word.keb,
+            Word.reb,
+            Word.sense
+        ).select_from(EpisodeWord) \
+        .join(
+            Word, 
+            or_(
+                EpisodeWord.word == any_(Word.keb),
+                and_(
+                    EpisodeWord.word == any_(Word.reb),
+                    Word.keb == '{}'
+                )
+            )
+        ).filter(EpisodeWord.episode_id == epId) \
+        .order_by(desc(EpisodeWord.frequency)) \
+        .all()
+    
+    if paginate:
+        finalVocab = finalVocab[offset: offset + 20]
 
-    return finalVocab
+    return [{
+                "id": word.id, 
+                "keb": word.keb, 
+                "reb": word.reb, 
+                "sense": word.sense 
+            } for word in finalVocab]
 
 # Routes
 
@@ -222,8 +241,6 @@ def get_episode():
     if episode is None:
         return Response(response=json.dumps({ "error": "The requested episode was not found." }), mimetype='application/json')
     
-    vocabToSearch = EpisodeWord.query.filter(EpisodeWord.episode_id == episode.id).order_by(desc(EpisodeWord.frequency)).limit(20).offset(offset).all()
-
     prev = False
     next = False
     if offset != 0:
@@ -231,7 +248,7 @@ def get_episode():
     if EpisodeWord.query.filter(EpisodeWord.episode_id == episode.id).count() > (offset + 20):
         next = True
 
-    finalVocab = searchWords(vocabToSearch)
+    finalVocab = searchWords(episode.id, True, offset)
 
     return Response(response=json.dumps({ "vocab": finalVocab, "prev": prev, "next": next}), mimetype='application/json')
 
@@ -245,7 +262,7 @@ def export_episode():
     if episode is None:
         return Response(response=json.dumps({ "error": "The requested episode was not found." }), mimetype='application/json')
     
-    finalVocab = searchWords(episode.id)
+    finalVocab = searchWords(episode.id, False)
 
     return Response(response=json.dumps(finalVocab), mimetype='application/json')
 '''
