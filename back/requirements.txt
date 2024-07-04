@@ -10,3 +10,4 @@ Flask-Migrate
 unidic-lite
 requests
 pysubs2
+Gunicorn
