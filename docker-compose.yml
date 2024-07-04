@@ -1,4 +1,17 @@
 services:
+  nextapp:
+    container_name: nextapp
+    image: nextapp:1.0.0
+    build:
+      context: ./front
+      dockerfile: next.dockerfile
+    ports:
+      - 3000:3000
+    environment:
+      NEXT_PUBLIC_BACK: ${NEXT_PUBLIC_BACK}
+    depends_on:
+      - flaskapp
+    
   flaskapp:
     container_name: flaskapp
     image: flaskapp:latest
