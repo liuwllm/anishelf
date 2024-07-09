@@ -1,4 +1,22 @@
 services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - 80:80
+      - 443:443
+    restart: always
+    volumes:
+      - ./nginx/conf/:/etc/nginx/conf.d/:ro
+      - ./certbot/www/:/var/www/certbot/:ro
+      - ./certbot/conf/:/etc/nginx/ssl/:ro
+    network_mode: "host"
+
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ./certbot/www/:/var/www/certbot/:rw
+      - ./certbot/conf:/etc/letsencrypt/:rw
+
   nextapp:
     container_name: nextapp
     image: nextapp:1.0.0
@@ -9,9 +27,7 @@ services:
       - 3000:3000
     environment:
       NEXT_PUBLIC_BACK: ${NEXT_PUBLIC_BACK}
-    depends_on:
-      - flaskapp
-    
+
   flaskapp:
     container_name: flaskapp
     image: flaskapp:latest
