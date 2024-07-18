@@ -100,6 +100,8 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
 
 export default function Vocab({ data, title, show_id, ep_id, offset }: VocabPageProps) {
     return (
+        <>
+        <title>Anishelf - {title}: Episode {ep_id} Vocabulary</title>
         <div className=" flex flex-col">
             <div className="flex flex-col px-48 py-12 gap-4 min-h-screen bg-slate-100">
                 <Logo />
@@ -118,5 +120,6 @@ export default function Vocab({ data, title, show_id, ep_id, offset }: VocabPage
                 <NavBar prev={data.prev} next={data.next} id={show_id} episode={ep_id} title={title} offset={offset}/>
             </div>
         </div>
+        </>
     )
 }

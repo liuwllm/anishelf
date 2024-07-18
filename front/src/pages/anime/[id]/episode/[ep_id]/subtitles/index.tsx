@@ -85,6 +85,8 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
 
 export default function Show({ data, show_id, title }: SubtitlePageProps) {
     return (
+        <>
+        <title>Anishelf - {title} Subtitles</title>
         <div className="flex gap-12 flex-col min-h-screen bg-slate-100 px-48 py-12">
             <Logo />
             <Link href={`/anime/${show_id}`}>
@@ -121,5 +123,6 @@ export default function Show({ data, show_id, title }: SubtitlePageProps) {
                 </TableBody>
             </Table>
         </div>
+        </>
     )
 }

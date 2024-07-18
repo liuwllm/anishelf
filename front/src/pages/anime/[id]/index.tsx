@@ -88,6 +88,8 @@ export default function Show({ data }: AnimePageProps) {
     }
     
     return (
+        <>
+        <title>Anishelf - {data.title.english ? data.title.english: data.title.romaji}</title>
         <div className="flex gap-12 flex-col min-h-screen bg-slate-100 px-48 py-12">
             <Logo />
             <div className="flex gap-12">
@@ -121,6 +123,7 @@ export default function Show({ data }: AnimePageProps) {
                 </div>
             </div>
         </div>
+        </>
     )
 }
 
