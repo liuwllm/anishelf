@@ -1,9 +1,11 @@
 import Link from "next/link";
+import Image from "next/image";
+import LogoImage from "../../public/logo.png";
 
 export default function Logo() {
     return (
-        <Link href="/">
-            <h1 className="text-5xl text-blue-600 hover:text-blue-300 hover:cursor-pointer font-bold">Anishelf</h1>
+        <Link href="/" className="hover:cursor-pointer">
+            <Image src={LogoImage} alt="Logo" height={60} width={175} />
         </Link>
     )
 }
