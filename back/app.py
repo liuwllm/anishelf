@@ -241,6 +241,8 @@ def get_episode():
     if episode is None:
         return Response(response=json.dumps({ "error": "The requested episode was not found." }), mimetype='application/json')
     
+    vocabToSearch = EpisodeWord.query.filter(EpisodeWord.episode_id == episode.id).order_by(desc(EpisodeWord.frequency)).limit(20).offset(offset).all()
+
     prev = False
     next = False
     if offset != 0:
@@ -248,9 +250,34 @@ def get_episode():
     if EpisodeWord.query.filter(EpisodeWord.episode_id == episode.id).count() > (offset + 20):
         next = True
 
-    finalVocab = searchWords(episode.id, True, offset)
+    finalVocab = []
+    for vocab in vocabToSearch:
+        kebFind = Word.query.filter(vocab.word == any_(Word.keb)).all()
+        if kebFind:
+            for word in kebFind:
+                finalVocab.append({
+                    'id': word.id,
+                    'keb': word.keb,
+                    'reb': word.reb,
+                    'sense': word.sense
+                })
+        else:
+            rebFind = Word.query.filter(
+                and_(
+                    vocab.word == any_(Word.reb), 
+                    Word.keb == '{}'
+                )
+            ).all()
+            for word in rebFind:
+                finalVocab.append({
+                    'id': word.id,
+                    'keb': word.keb,
+                    'reb': word.reb,
+                    'sense': word.sense
+                })
 
     return Response(response=json.dumps({ "vocab": finalVocab, "prev": prev, "next": next}), mimetype='application/json')
+
 
 @app.route('/export_episode', endpoint='/export_episode', methods=['GET'])
 @cross_origin()
@@ -265,68 +292,7 @@ def export_episode():
     finalVocab = searchWords(episode.id, False)
 
     return Response(response=json.dumps(finalVocab), mimetype='application/json')
-'''
-@app.route('/get_show', endpoint='/get_show', methods=['GET'])
-@cross_origin()
-def get_show():
-    showId = int(request.args.get('anilist_id'))
-    offset = int(request.args.get('offset'))
-    
-    vocabToSearch = db.session.query(
-        EpisodeWord.episode_id,
-        EpisodeWord.word,
-        func.sum(EpisodeWord.frequency).label('total_frequency')
-    ).filter(
-        EpisodeWord.show_id == showId
-    ).group_by(
-        EpisodeWord.episode_id,
-        EpisodeWord.word
-    ).order_by(
-        desc(EpisodeWord.frequency)
-    ).limit(20).offset(offset).all()
 
-    prev = False
-    next = False
-    if offset != 0:
-        prev = True
-    if db.session.query(
-        EpisodeWord.episode_id,
-        EpisodeWord.word,
-        func.sum(EpisodeWord.frequency).label('total_frequency')
-    ).filter(
-        EpisodeWord.show_id == showId
-    ).group_by(
-        EpisodeWord.episode_id,
-        EpisodeWord.word
-    ).count() > (offset + 20):
-        next = True
-
-    finalVocab = searchWords(vocabToSearch)
-
-    return Response(response=json.dumps({ "vocab": finalVocab, "prev": prev, "next": next}), mimetype='application/json')
-
-@app.route('/export_show', endpoint='/export_show', methods=['GET'])
-@cross_origin()
-def export_show():
-    showId = int(request.args.get('anilist_id'))
-    
-    vocabToSearch = db.session.query(
-        EpisodeWord.episode_id,
-        EpisodeWord.word,
-        func.sum(EpisodeWord.frequency).label('total_frequency')
-    ).filter(
-        EpisodeWord.show_id == showId
-    ).group_by(
-        EpisodeWord.episode_id,
-        EpisodeWord.word
-    ).order_by(
-        desc(EpisodeWord.frequency)
-    ).all()
-
-    finalVocab = searchWords(vocabToSearch)
-
-    return Response(response=json.dumps(finalVocab), mimetype='application/json')
-'''
 
 @app.route('/download_subtitles', endpoint='/download_subtitles', methods=['GET'])
 @cross_origin()
