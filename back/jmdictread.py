@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 
-from app import db, Word, app
+from back.app import db, Word, app
 
 load_dotenv()
 

@@ -1,6 +1,6 @@
 FROM python:3.12-slim-bookworm
 
-WORKDIR /app
+WORKDIR /back
 
 COPY requirements.txt ./
 
@@ -10,6 +10,6 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["gunicorn","--config", "gunicorn_config.py", "app:app"]
+CMD ["gunicorn","--config", "./app/config/gunicorn_config.py", "app:create_app()"]
 
 

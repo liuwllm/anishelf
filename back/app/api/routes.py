@@ -1,100 +1,22 @@
 import os
 import json
 import requests
-import config
 import pysubs2
-from flask import Flask, Response, request
-from flask_cors import CORS, cross_origin
-from flask_sqlalchemy import SQLAlchemy
+from . import anishelf_bp
+from ..database import db
+from flask import Response, request
+from flask_cors import cross_origin
 from sqlalchemy.sql import any_, or_, and_
 from sqlalchemy.orm import aliased
 from sqlalchemy import desc, func, text
-from flask_migrate import Migrate
-
-from jp_parse import jpWordExtract
-
-# Initialization & config
-
-app = Flask(__name__)
-CORS(app)
-
-app.config['CORS_HEADERS'] = 'Content-Type'
-app.config['UPLOAD_FOLDER'] = './'
-app.config['SQLALCHEMY_DATABASE_URI'] = config.DATABASE_URL
-
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
-
-# Database Models
-
-class Word(db.Model):
-    __tablename__ = 'words'
-    id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False, index=True)
-    keb = db.Column(db.ARRAY(db.String), index=True)
-    reb = db.Column(db.ARRAY(db.String), index=True)
-    sense = db.Column(db.ARRAY(db.String))
-
-    def __init__(self, id, keb=None, reb=None, sense=None):
-        self.id = id
-        self.keb = keb
-        self.reb = reb
-        self.sense = sense
+from ..models.episode import Episode
+from ..models.episodeword import EpisodeWord
+from ..models.show import Show
+from ..models.subtitle import Subtitle
+from ..models.word import Word
+from ..utils.jp_parse import jpWordExtract
 
 
-class Show(db.Model):
-    __tablename__ = 'shows'
-    id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False, index=True)
-    episodes = db.relationship('Episode', backref='show')
-    episodewords = db.relationship('EpisodeWord', backref='show')
-
-    def __init__(self, id):
-        self.id = id
-
-
-class Episode(db.Model):
-    __tablename__ = 'episodes'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    episode_no = db.Column(db.Integer, index=True)
-    show_id = db.Column(db.Integer, db.ForeignKey(Show.id), index=True)
-    subtitles = db.relationship('Subtitle', backref='episode')
-    words = db.relationship('EpisodeWord', backref='episode')
-    
-    def __init__(self, episode_no=None, show_id=None):
-        self.episode_no = episode_no
-        self.show_id = show_id
-
-
-class Subtitle(db.Model):
-    __tablename__ = 'subtitles'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    episode_id = db.Column(db.Integer, db.ForeignKey(Episode.id))
-    name = db.Column(db.String)
-    link = db.Column(db.String)
-    last_modified = db.Column(db.String)
-    size = db.Column(db.Integer)
-
-    def __init__(self, episode_id, name=None, link=None, last_modified=None, size=None):
-        self.episode_id= episode_id
-        self.name = name
-        self.link = link
-        self.last_modified = last_modified
-        self.size = size
-
-class EpisodeWord(db.Model):
-    __tablename__ = 'episodewords'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    show_id = db.Column(db.Integer, db.ForeignKey(Show.id))
-    episode_id = db.Column(db.Integer, db.ForeignKey(Episode.id))
-    word = db.Column(db.String, index=True)
-    frequency = db.Column(db.Integer)
-
-    def __init__(self, show_id=None, episode_id=None, word=None, frequency=None):
-        self.show_id = show_id
-        self.episode_id = episode_id
-        self.word = word
-        self.frequency = frequency
-
-# Utility functions
 def searchWords(episode_id, paginate, offset=None):
     epId = episode_id
 
@@ -127,16 +49,14 @@ def searchWords(episode_id, paginate, offset=None):
                 "sense": word.sense 
             } for word in finalVocab]
 
-# Routes
-
 # Test route
-@app.route('/')
+@anishelf_bp.route('/')
 @cross_origin()
 def hello():
     return "Hello, world!"
 
 
-@app.route('/check_episode', endpoint='/check_episode', methods=['GET'])
+@anishelf_bp.route('/check_episode', endpoint='/check_episode', methods=['GET'])
 @cross_origin()
 def check_episode():
     showId = int(request.args.get('anilist_id'))
@@ -158,14 +78,14 @@ def check_episode():
         return Response(response=json.dumps({ "episode_exists": True}), mimetype='application/json')
 
 
-@app.route('/get_subtitles', endpoint='/get_subtitles', methods=['GET'])
+@anishelf_bp.route('/get_subtitles', endpoint='/get_subtitles', methods=['GET'])
 @cross_origin()
 def get_subtitles():
     showId = int(request.args.get('anilist_id'))
     episodeNo = int(request.args.get('episode'))
     episodeId = Episode.query.filter(Episode.episode_no == episodeNo, Episode.show_id == showId).first().id
 
-    jimakuKey = config.JIMAKU_KEY
+    jimakuKey = settings.JIMAKU_KEY
 
     # Retrieve Jimaku ID for series
     searchUrl = "https://jimaku.cc/api/entries/search"
@@ -197,7 +117,7 @@ def get_subtitles():
     return Response(response=json.dumps({ "subtitle_url": link }))
 
 
-@app.route('/analyze_episode', endpoint='/analyze_episode', methods=['POST'])
+@anishelf_bp.route('/analyze_episode', endpoint='/analyze_episode', methods=['POST'])
 @cross_origin()
 def analyze_episode():
     showId = int(request.args.get('anilist_id'))
@@ -230,7 +150,7 @@ def analyze_episode():
     return Response(response=json.dumps(resultDict), mimetype='application/json')
 
 
-@app.route('/get_episode', endpoint='/get_episode', methods=['GET'])
+@anishelf_bp.route('/get_episode', endpoint='/get_episode', methods=['GET'])
 @cross_origin()
 def get_episode():
     showId = int(request.args.get('anilist_id'))
@@ -279,7 +199,7 @@ def get_episode():
     return Response(response=json.dumps({ "vocab": finalVocab, "prev": prev, "next": next}), mimetype='application/json')
 
 
-@app.route('/export_episode', endpoint='/export_episode', methods=['GET'])
+@anishelf_bp.route('/export_episode', endpoint='/export_episode', methods=['GET'])
 @cross_origin()
 def export_episode():
     showId = int(request.args.get('anilist_id'))
@@ -294,7 +214,7 @@ def export_episode():
     return Response(response=json.dumps(finalVocab), mimetype='application/json')
 
 
-@app.route('/download_subtitles', endpoint='/download_subtitles', methods=['GET'])
+@anishelf_bp.route('/download_subtitles', endpoint='/download_subtitles', methods=['GET'])
 @cross_origin()
 def download_subtitles():
     showId = int(request.args.get('anilist_id'))
