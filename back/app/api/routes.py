@@ -77,8 +77,14 @@ def check_episode():
         db.session.add(episodeToInsert)
         db.session.commit()
         return Response(response=json.dumps({ "episode_exists": False }), mimetype='application/json')
+    
+    # Check if episode entry has no vocabulary
+    elif EpisodeWord.query.filter(EpisodeWord.episode_id == episodeNo, EpisodeWord.show_id == showId).count() == 0:
+        return Response(response=json.dumps({ "episode_exists": False }), mimetype='application/json')
+    
     else:
         return Response(response=json.dumps({ "episode_exists": True}), mimetype='application/json')
+
 
 
 @anishelf_bp.route('/get_subtitles', endpoint='/get_subtitles', methods=['GET'])
