@@ -2,7 +2,9 @@ import os
 import json
 import requests
 import pysubs2
+import regex as re
 from . import anishelf_bp
+from ..config import settings
 from ..database import db
 from flask import Response, request
 from flask_cors import cross_origin
@@ -17,6 +19,10 @@ from ..models.word import Word
 from ..utils.jp_parse import jpWordExtract
 
 
+def checkKanji(word):
+    return re.match(r'\p{Han}', word)
+
+
 def searchWords(episode_id, paginate, offset=None):
     epId = episode_id
 
@@ -29,11 +35,8 @@ def searchWords(episode_id, paginate, offset=None):
         .join(
             Word, 
             or_(
-                EpisodeWord.word == any_(Word.keb),
-                and_(
-                    EpisodeWord.word == any_(Word.reb),
-                    Word.keb == '{}'
-                )
+                EpisodeWord.word == Word.keb,
+                EpisodeWord.word == Word.reb
             )
         ).filter(EpisodeWord.episode_id == epId) \
         .order_by(desc(EpisodeWord.frequency)) \
@@ -128,7 +131,7 @@ def analyze_episode():
     subType = request.form['type']
     subResponse = requests.get(subUrl).content
 
-    subPath = os.path.join(app.config['UPLOAD_FOLDER'], f'subtitle{subType}')
+    subPath = os.path.join(settings.UPLOAD_FOLDER, f'subtitle{subType}')
 
     with open(subPath, 'wb') as file:
         file.write(subResponse)
@@ -172,29 +175,26 @@ def get_episode():
 
     finalVocab = []
     for vocab in vocabToSearch:
-        kebFind = Word.query.filter(vocab.word == any_(Word.keb)).all()
-        if kebFind:
-            for word in kebFind:
-                finalVocab.append({
-                    'id': word.id,
-                    'keb': word.keb,
-                    'reb': word.reb,
-                    'sense': word.sense
-                })
+        if checkKanji(vocab.word):
+            kebFind = Word.query.filter(vocab.word == Word.keb).all()
+            if kebFind:
+                for word in kebFind:
+                    finalVocab.append({
+                        'id': word.id,
+                        'keb': word.keb,
+                        'reb': word.reb,
+                        'sense': word.sense
+                    })
         else:
-            rebFind = Word.query.filter(
-                and_(
-                    vocab.word == any_(Word.reb), 
-                    Word.keb == '{}'
-                )
-            ).all()
-            for word in rebFind:
-                finalVocab.append({
-                    'id': word.id,
-                    'keb': word.keb,
-                    'reb': word.reb,
-                    'sense': word.sense
-                })
+            rebFind = Word.query.filter(and_(vocab.word == Word.reb, Word.keb == None)).all()
+            if rebFind:
+                for word in rebFind:
+                    finalVocab.append({
+                        'id': word.id,
+                        'keb': word.keb,
+                        'reb': word.reb,
+                        'sense': word.sense
+                    })
 
     return Response(response=json.dumps({ "vocab": finalVocab, "prev": prev, "next": next}), mimetype='application/json')
 
