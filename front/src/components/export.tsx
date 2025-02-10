@@ -87,8 +87,8 @@ export default function Export({ id, episode }: ExportProps ) {
         
         lookupData.map(card =>
             csvString.push([
-                card.keb.join(" / "),
-                card.reb.join(" / "),
+                card.keb,
+                card.reb,
                 card.sense.join(" / "),
             ].join(","))
         )

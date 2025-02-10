@@ -1,5 +1,5 @@
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
-import CardGallery, { Vocabulary } from "@/components/vocabulary/cardgallery";
+import CardGallery, { WordGroup } from "@/components/vocabulary/cardgallery";
 import NavBar from "@/components/vocabulary/navbar";
 import Logo from "@/components/logo";
 import Export from "@/components/export";
@@ -7,7 +7,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Link from "next/link";
 
 interface Data {
-    vocab: Vocabulary[];
+    vocab: WordGroup[];
     prev: boolean;
     next: boolean;
 }

@@ -1,54 +1,101 @@
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
+import { Button } from "@/components/ui/button"
+import { 
+    Collapsible,
+    CollapsibleTrigger, 
+    CollapsibleContent
+} from "@/components/ui/collapsible"
+import React, { useState } from 'react';
+import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 
 interface CardGalleryProps {
-    words: Vocabulary[]
+    words: WordGroup[]
+}
+
+export interface WordGroup{
+    id: number;
+    elements: Vocabulary[]
 }
 
 export interface Vocabulary {
     id: number;
-    keb: string[];
-    reb: string[];
+    keb: string;
+    reb: string;
     sense: string[];
 }
 
 export default function CardGallery({ words }: CardGalleryProps ) {
+    const [isOpen, setIsOpen] = useState(false)
+    
     return (
         <div className="flex flex-col gap-4">
-            {words.map((word: Vocabulary) =>
-                <div className="flex flex-row gap-12 p-8 shadow-md rounded-lg bg-white items-center" key={word.id}>
-                    {
-                        // Check if keb exists
-                        (word.keb[0]) ? 
-                        (
-                            // Check if more than one keb exists
-                            <div className="flex flex-col">
-                                {(word.keb[1]) ? 
-                                (<Popover>
-                                    <PopoverTrigger className="bg-slate-200 p-2 rounded-lg">
-                                        <h1 className="text-4xl">{word.keb[0]}</h1>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="text-center">
-                                        <h2 className="text-md">{word.keb.slice(1, -1).map(keb => keb.concat(" / ")).concat(word.keb.slice(-1)[0])}</h2>
-                                        <p className="text-xs text-slate-500">variants</p>
-                                    </PopoverContent>
-                                </Popover>) : 
-                                (<h1 className="text-center p-4 text-4xl">{word.keb[0]}</h1>)}
-                                
-                                <h3 className="text-center p-2 text-slate-500 text-sm">
-                                    {word.reb.slice(1,-1).map(reb => reb.concat(" / ")).concat(word.reb.slice(-1)[0])}
-                                </h3>
+            {words.map((group: WordGroup) =>
+                <div className="w-full p-8 shadow-md rounded-lg bg-white items-center" key={group.id}>
+                    {   
+                        (group.elements.length == 1) ?
+                        (<div className="flex flex-row" key={group.elements[0].id}>
+                            <div className="flex-none w-1/6 justify-center">{
+                                (group.elements[0].keb) ?
+                                (<div className="flex flex-col">
+                                    <h1 className="text-4xl">{group.elements[0].keb}</h1>
+                                    <h3 className="p-2 text-slate-500 text-sm">{group.elements[0].reb}</h3>
+                                </div>) :
+                                (<h1 className="text-4xl">{group.elements[0].reb}</h1>)
+                            }</div>
+                            <div className="flex-1">
+                                <ol className="list-decimal">
+                                    {group.elements[0].sense.map(sense =><li key={group.elements[0].id}>{sense}</li>)}
+                                </ol>
                             </div>
-                        ) :
-                        // Only a reb exists
-                        (<h1 className="text-center p-4 text-4xl">{word.reb[0]}</h1>)
+                        </div>) :
+                        (<>
+                        <div className="flex flex-row" key={group.elements[0].id}>
+                            <div className="flex-none w-1/6 justify-center">{
+                                (group.elements[0].keb) ?
+                                (<div className="flex flex-col">
+                                    <h1 className="text-4xl">{group.elements[0].keb}</h1>
+                                    <h3 className="p-2 text-slate-500 text-sm">{group.elements[0].reb}</h3>
+                                </div>) :
+                                (<h1 className="text-4xl">{group.elements[0].reb}</h1>)
+                            }</div>
+                            <div className="flex-1">
+                                <ol className="list-decimal">
+                                    {group.elements[0].sense.map(sense =><li key={group.elements[0].id}>{sense}</li>)}
+                                </ol>
+                            </div>
+                        </div>
+                        <Collapsible
+                            open={isOpen}
+                            onOpenChange={setIsOpen}
+                            className="flex flex-col"
+                        >
+                            <CollapsibleTrigger asChild>
+                                <Button className="flex flex-row items-center" variant="ghost" size="sm">
+                                    <p>See other results</p>
+                                    <UnfoldMoreIcon className="h-4 w-4" />
+                                </Button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className="space-y-4">
+                            {group.elements.slice(1).map((word: Vocabulary) => 
+                                <div className="flex flex-row" key={word.id}>
+                                    <div className="flex-none w-1/5">{
+                                        (word.keb) ?
+                                        (<div className="flex flex-col">
+                                            <h1 className="text-4xl">{word.keb}</h1>
+                                            <h3 className="p-2 text-slate-500 text-sm">{word.reb}</h3>
+                                        </div>) :
+                                        (<h1 className="text-4xl">{word.reb}</h1>)
+                                    }</div>
+                                    <div className="flex-1">
+                                        <ol className="list-decimal">
+                                            {word.sense.map(sense =><li key={word.id}>{sense}</li>)}
+                                        </ol>
+                                    </div>
+                                </div>
+                            )}
+                            </CollapsibleContent>
+                        </Collapsible>
+                        </>)
                     }
-                    <ol className="list-decimal">
-                        {word.sense.map(sense =><li key={word.id}>{sense}</li>)}
-                    </ol>
                 </div>
             )}
         </div>

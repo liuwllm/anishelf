@@ -36,7 +36,8 @@ def searchWords(episode_id, paginate, offset=None):
             Word, 
             or_(
                 EpisodeWord.word == Word.keb,
-                EpisodeWord.word == Word.reb
+                and_(EpisodeWord.word == Word.reb,
+                Word.keb == None)
             )
         ).filter(EpisodeWord.episode_id == epId) \
         .order_by(desc(EpisodeWord.frequency)) \
@@ -183,24 +184,35 @@ def get_episode():
     for vocab in vocabToSearch:
         if checkKanji(vocab.word):
             kebFind = Word.query.filter(vocab.word == Word.keb).all()
+            sameKeb = []
             if kebFind:
                 for word in kebFind:
-                    finalVocab.append({
+                    sameKeb.append({
                         'id': word.id,
                         'keb': word.keb,
                         'reb': word.reb,
                         'sense': word.sense
                     })
+                finalVocab.append({
+                    "id": vocab.word,
+                    "elements": sameKeb
+                })
+
         else:
             rebFind = Word.query.filter(and_(vocab.word == Word.reb, Word.keb == None)).all()
+            sameReb = []
             if rebFind:
                 for word in rebFind:
-                    finalVocab.append({
+                    sameReb.append({
                         'id': word.id,
                         'keb': word.keb,
                         'reb': word.reb,
                         'sense': word.sense
                     })
+                finalVocab.append({
+                    "id": vocab.word,
+                    "elements": sameReb
+                })
 
     return Response(response=json.dumps({ "vocab": finalVocab, "prev": prev, "next": next}), mimetype='application/json')
 
