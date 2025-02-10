@@ -27,6 +27,7 @@ services:
       - 3000:3000
     environment:
       NEXT_PUBLIC_BACK: ${NEXT_PUBLIC_BACK}
+      NEXT_PUBLIC_LOCAL_BACK: ${NEXT_PUBLIC_LOCAL_BACK}
 
   flaskapp:
     container_name: flaskapp
