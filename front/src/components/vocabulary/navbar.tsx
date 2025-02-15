@@ -22,44 +22,24 @@ interface NavButtonProps {
 }
 
 function PrevButton({ id, episode, title, offset }: NavButtonProps) {
-    const [loading, setLoading] = useState<boolean>(false);
-
     return (
-        <>
-        {
-            (loading) ? 
-            (<Button disabled>
-                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> Loading
-            </Button>) : 
-            (<Link href={`/anime/${id}/episode/${episode}?offset=${parseInt(offset) - 20}&title=${title}`}>
-                <Button onClick={() => setLoading(true)}>
-                    <NavigateBeforeIcon className="h-4 w-4"/> 
-                    <p className="mr-2">Previous</p>
-                </Button>
-            </Link>)
-        }
-        </>
+        <Link href={`/anime/${id}/episode/${episode}?offset=${parseInt(offset) - 20}&title=${title}`}>
+            <Button>
+                <NavigateBeforeIcon className="h-4 w-4"/> 
+                <p className="mr-2">Previous</p>
+            </Button>
+        </Link>
     )
 }
 
 function NextButton({ id, episode, title, offset }: NavButtonProps) {
-    const [loading, setLoading] = useState<boolean>(false);
-
     return (
-        <>
-        {
-            (loading) ? 
-            (<Button disabled>
-                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> Loading
-            </Button>) : 
-            (<Link href={`/anime/${id}/episode/${episode}?offset=${parseInt(offset) + 20}&title=${title}`}>
-                <Button onClick={() => setLoading(true)}>
-                    <p className="ml-2">Next</p>
-                    <NavigateNextIcon className="h-4 w-4"/> 
-                </Button>
-            </Link>)
-        }
-        </>
+        (<Link href={`/anime/${id}/episode/${episode}?offset=${parseInt(offset) + 20}&title=${title}`}>
+            <Button>
+                <p className="ml-2">Next</p>
+                <NavigateNextIcon className="h-4 w-4"/> 
+            </Button>
+        </Link>)
     )
 }
 
