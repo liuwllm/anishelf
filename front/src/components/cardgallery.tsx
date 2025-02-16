@@ -32,7 +32,7 @@ export default function CardGallery({ words }: CardGalleryProps ) {
                 <div className="w-full p-8 shadow-md rounded-lg bg-white items-center" key={group.id}>
                     {   
                         (group.elements.length == 1) ?
-                        (<div className="flex flex-row" key={group.elements[0].id}>
+                        (<div className="flex flex-col sm:flex-row" key={group.elements[0].id}>
                             <div className="flex-none w-1/6 justify-center">{
                                 (group.elements[0].keb) ?
                                 (<div className="flex flex-col">
@@ -50,7 +50,7 @@ export default function CardGallery({ words }: CardGalleryProps ) {
                         (<>
                         {group.elements.slice(1).map((word: Vocabulary) => 
                                 <>
-                                    <div className="flex flex-row" key={word.id}>
+                                    <div className="flex flex-col sm:flex-row" key={word.id}>
                                         <div className="flex-none w-1/6">{
                                             (word.keb) ?
                                             (<div className="flex flex-col">
@@ -68,7 +68,7 @@ export default function CardGallery({ words }: CardGalleryProps ) {
                                     <hr className="text-slate-500 my-4" />
                                 </>
                         )}
-                        <div className="flex flex-row" key={group.elements[group.elements.length - 1].id}>
+                        <div className="flex flex-col sm:flex-row" key={group.elements[group.elements.length - 1].id}>
                             <div className="flex-none w-1/6 justify-center">{
                                 (group.elements[group.elements.length - 1].keb) ?
                                 (<div className="flex flex-col">

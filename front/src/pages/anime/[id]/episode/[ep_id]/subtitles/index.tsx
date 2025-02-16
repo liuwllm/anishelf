@@ -87,7 +87,7 @@ export default function Show({ data, show_id, title }: SubtitlePageProps) {
     return (
         <>
         <title>Anishelf - {title} Subtitles</title>
-        <div className="flex gap-12 flex-col min-h-screen bg-slate-100 px-48 py-12">
+        <div className="flex gap-12 flex-col min-h-screen bg-slate-100 px-6 sm:px-12 md:px-24 lg:px-48 py-8 sm:py-12 md:py-16">
             <Logo />
             <Link href={`/anime/${show_id}`}>
                 <div className="flex flex-row items-center gap-4 text-slate-800 hover:text-slate-500 hover:cursor-pointer">
@@ -95,7 +95,7 @@ export default function Show({ data, show_id, title }: SubtitlePageProps) {
                     <h2 className="text-xl">Back</h2>
                 </div>
             </Link>
-            <h1 className="text-slate-800 font-bold text-3xl">{title} Subtitles</h1>
+            <h1 className="text-slate-800 font-bold text-lg sm:text-xl md:text-2xl lg:text-3xl">{title} Subtitles</h1>
             <Table>
                 <TableHeader>
                     <TableRow>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import Export from "@/components/export";
 import { useState } from "react";
 import { LoaderCircle } from 'lucide-react';
-import { SubLoader, VocabLoader } from "@/components/animeEntry/loading";
+import { SubLoader, VocabLoader } from "@/components/loading";
 
 interface EpisodeProps {
     count: number;
@@ -27,12 +27,18 @@ export default function Episode({ count, id, title }: EpisodeProps) {
                 episodeNumbers.map(episode => {
                     return (
                         <div key={episode}>
-                            <div className="flex w-full justify-between p-4">
+                            <div className="flex flex-col sm:flex-row w-full justify-between p-4">
                                 <p className="text-md font-medium text-slate-500">Episode {episode}</p>
-                                <div className="flex gap-4">
-                                    <SubLoader id={id.toString()} episode={episode.toString()} title={title}/>
-                                    <Export id={id.toString()} episode={episode.toString()} />
-                                    <VocabLoader id={id.toString()} episode={episode.toString()} title={title}/>
+                                <div className="flex flex-col sm:flex-row gap-4 mt-2 sm:mt-0">
+                                    <div className="w-full">
+                                        <SubLoader id={id.toString()} episode={episode.toString()} title={title}/>
+                                    </div>
+                                    <div className="w-full">
+                                        <Export id={id.toString()} episode={episode.toString()} />
+                                    </div>
+                                    <div className="w-full">
+                                        <VocabLoader id={id.toString()} episode={episode.toString()} title={title}/>
+                                    </div>
                                 </div>
                             </div>
                             <Separator />

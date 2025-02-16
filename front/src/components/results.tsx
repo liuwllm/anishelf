@@ -108,7 +108,7 @@ export default function Results() {
                 <Search onKeyDown={handleSearch} onChange={handleChange}/>
                 <Button onClick={handleSubmit}>Search</Button>
             </div>
-            <div className="grid grid-cols-6 gap-x-16 gap-y-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-8">
                 {anime.map((anime) => (
                 <div className="flex flex-col items-left gap-3" key={anime.id}>
                     <div className="aspect-cover relative overflow-hidden rounded-md shadow-lg hover:ring-4">
@@ -116,7 +116,7 @@ export default function Results() {
                             <img src={anime.coverImage.large} className="object-cover h-full w-full" alt={anime.title.english ? anime.title.english : anime.title.romaji}></img>
                         </Link>
                     </div>
-                    <h1 className="text-slate-500 font-semibold text-md">{anime.title.english ? anime.title.english : anime.title.romaji}</h1>
+                    <h1 className="text-slate-500 font-semibold text-sm sm:text-md">{anime.title.english ? anime.title.english : anime.title.romaji}</h1>
                 </div>
                 ))}
             </div>

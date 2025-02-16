@@ -3,7 +3,7 @@ import { polyfill } from 'interweave-ssr';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { Badge } from "@/components/ui/badge";
 import { ReactNode } from 'react';
-import Episode from "@/components/animeEntry/episode";
+import Episode from "@/components/episode";
 import Logo from "@/components/logo";
 import Image from 'next/image';
 
@@ -90,11 +90,11 @@ export default function Show({ data }: AnimePageProps) {
     return (
         <>
         <title>Anishelf - {data.title.english ? data.title.english: data.title.romaji}</title>
-        <div className="flex gap-12 flex-col min-h-screen bg-slate-100 px-48 py-12">
+        <div className="flex gap-12 flex-col min-h-screen bg-slate-100 px-6 sm:px-12 md:px-24 lg:px-48 py-8 sm:py-12 md:py-16">
             <Logo />
-            <div className="flex gap-12">
-                <div className="flex flex-col gap-4 w-72">
-                    <div className="aspect-cover relative overflow-hidden rounded-md w-72 shadow-lg">
+            <div className="flex flex-col md:flex-row gap-12">
+                <div className="flex flex-col gap-4 w-full sm:w-56 md:w-64 lg:w-72">
+                    <div className="aspect-cover relative overflow-hidden rounded-md w-full sm:w-56 md:w-64 lg:w-72 shadow-lg">
                         <img src={data.coverImage.extraLarge} className="object-cover w-fit" alt={title}></img>
                     </div>
                     <div className="flex flex-row flex-wrap gap-4">
@@ -115,10 +115,10 @@ export default function Show({ data }: AnimePageProps) {
                 </div>
                 <div className="flex flex-col gap-4 w-fit">
                     <div className="flex flex-row w-full h-min">
-                        <h1 className="font-bold text-5xl text-slate-800">{data.title.english ? data.title.english: data.title.romaji}</h1>
+                        <h1 className="font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-slate-800">{data.title.english ? data.title.english: data.title.romaji}</h1>
                     </div>
-                    <p className="text-lg text-slate-800 w-fit"><Interweave content={data.description} /></p>
-                    <h2 className="font-bold text-3xl text-slate-800 mt-4">Episodes</h2>
+                    <p className="text-base sm:text-lg text-slate-800 w-fit"><Interweave content={data.description} /></p>
+                    <h2 className="font-bold text-lg sm:text-xl md:text-2xl lg:text-3xl text-slate-800 mt-4">Episodes</h2>
                     <Episode count={data.episodes} id={data.id} title={title}/>
                 </div>
             </div>

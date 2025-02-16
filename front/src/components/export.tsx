@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Vocabulary } from "@/components/vocabulary/cardgallery";
+import { Vocabulary } from "@/components/cardgallery";
 import { useState } from "react";
 import { LoaderCircle } from 'lucide-react';
 

@@ -1,6 +1,6 @@
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
-import CardGallery, { WordGroup } from "@/components/vocabulary/cardgallery";
-import NavBar from "@/components/vocabulary/navbar";
+import CardGallery, { WordGroup } from "@/components/cardgallery";
+import NavBar from "@/components/navbar";
 import Logo from "@/components/logo";
 import Export from "@/components/export";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -103,19 +103,19 @@ export default function Vocab({ data, title, show_id, ep_id, offset }: VocabPage
         <>
         <title>Anishelf - {title}: Episode {ep_id} Vocabulary</title>
         <div className=" flex flex-col">
-            <div className="flex flex-col px-48 py-12 gap-4 min-h-screen bg-slate-100">
+            <div className="flex flex-col px-6 sm:px-12 md:px-24 lg:px-48 py-8 sm:py-12 md:py-16 gap-4 min-h-screen bg-slate-100">
                 <Logo />
                 <div className="flex flex-row justify-between w-full">
                     <Link href={`/anime/${show_id}`}>
                         <div className="flex flex-row items-center gap-4 text-slate-800 hover:text-slate-500 hover:cursor-pointer">
                             <ArrowBackIcon />
-                            <h1 className="text-4xl font-semibold">{title}</h1>
+                            <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold">{title}</h1>
                         </div>
                     </Link>
                     <Export id={show_id} episode={ep_id} />
                 </div>
-                <h2 className="text-3xl font-semibold text-slate-800">Episode {ep_id}</h2>
-                <h3 className="text-2xl font-medium text-slate-800">Vocabulary</h3>
+                <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-slate-800">Episode {ep_id}</h2>
+                <h3 className="text-md sm:text-lg md:text-xl lg:text-2xl font-medium text-slate-800">Vocabulary</h3>
                 <CardGallery words={data.vocab} />
                 <NavBar prev={data.prev} next={data.next} id={show_id} episode={ep_id} title={title} offset={offset}/>
             </div>
