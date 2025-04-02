@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { ReactNode } from 'react';
 import Episode from "@/components/episode";
 import Logo from "@/components/logo";
-import Image from 'next/image';
 
 interface AnimePageProps {
     data: AnimeShow;

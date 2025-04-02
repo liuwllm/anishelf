@@ -2,7 +2,6 @@ import { Search } from "@/components/ui/search";
 import { Button } from "@/components/ui/button";
 import React, { useEffect, useState } from "react"; 
 import Link from "next/link";
-import Image from 'next/image';
 
 interface AnimeSeries {
     id: number;

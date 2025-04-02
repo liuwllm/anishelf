@@ -1,11 +1,4 @@
-import { Button } from "@/components/ui/button"
-import { 
-    Collapsible,
-    CollapsibleTrigger, 
-    CollapsibleContent
-} from "@/components/ui/collapsible"
-import React, { useState } from 'react';
-import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
+import React from 'react';
 
 interface CardGalleryProps {
     words: WordGroup[]
@@ -24,8 +17,6 @@ export interface Vocabulary {
 }
 
 export default function CardGallery({ words }: CardGalleryProps ) {
-    const [isOpen, setIsOpen] = useState(false)
-    
     return (
         <div className="flex flex-col gap-4">
             {words.map((group: WordGroup) =>

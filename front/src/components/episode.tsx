@@ -1,9 +1,5 @@
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import Export from "@/components/export";
-import { useState } from "react";
-import { LoaderCircle } from 'lucide-react';
 import { SubLoader, VocabLoader } from "@/components/loading";
 
 interface EpisodeProps {
@@ -14,8 +10,6 @@ interface EpisodeProps {
 
 export default function Episode({ count, id, title }: EpisodeProps) {
     const episodeNumbers: number[] = [];
-    const [subLoading, setSubLoading] = useState<boolean>(false);
-    const [vocabLoading, setVocabLoading] = useState<boolean>(false);
 
     for (let i = 1; i <= count; i++) {
         episodeNumbers.push(i)

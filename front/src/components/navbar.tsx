@@ -1,9 +1,7 @@
 import { Button } from "@/components/ui/button"
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import { LoaderCircle } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 
 interface NavBarProps {
     prev: boolean;
