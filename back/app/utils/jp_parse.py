@@ -1,7 +1,6 @@
 import MeCab
 import regex as re
 
-
 def jpWordExtract(text):
     # Use Wakati to parse text and segment
     jpText = text.replace(" ", "")
@@ -31,3 +30,7 @@ def checkWord(word):
         and not re.match(r'\W', word)
         and re.match(r'\p{Hiragana}|\p{Katakana}|\p{Han}', word)
     )
+
+# Regex to check if word is kanji character
+def checkKanji(word):
+    return re.match(r'\p{Han}', word)

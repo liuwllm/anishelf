@@ -1,6 +1,3 @@
-import sys
-import os
-import json
 import xml.etree.ElementTree as ET
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -11,11 +8,11 @@ from app.models.word import Word
 
 load_dotenv()
 
+# Get root of XML file
 tree = ET.parse('./public/JMdict_e.xml')
 root = tree.getroot()
 
 dictEntries = []
-
 id = 0
 
 for child in root:
@@ -55,6 +52,7 @@ for child in root:
         "sense" : entry['sense']
     }
 
+    # Normalize entries for database depending on if we have keb or not
     if len(entry['keb']) > 0:
         for keb in entry['keb']:
             for reb in entry['reb']:
@@ -79,14 +77,17 @@ for child in root:
 
 dbEntries = []
 
+# Create a Word object for each dictionary entry 
 for item in dictEntries:
     entry = Word(id=item['id'], keb=item['keb'], reb=item['reb'], sense=item['sense'])
     dbEntries.append(entry)
 
+# Create a session
 engine = create_engine(DATABASE_URL)
 sessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 session = sessionLocal()
 
+# Attempt to bulk save all words into database
 try:
     session.bulk_save_objects(dbEntries)
     session.commit()
