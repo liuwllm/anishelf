@@ -26,6 +26,7 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
     let offset: string = context.query.offset as string;
     let title: string = context.query.title as string;
 
+    // Check if the episode has data
     const checkEpisodeRes = await fetch(
         `${process.env.NEXT_PUBLIC_BACK}check_episode?` + new URLSearchParams({
             anilist_id: show_id,
@@ -40,7 +41,9 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
     )
     const checkEpisodeData = await checkEpisodeRes.json();
 
+    // If the episode doesn't have data, retrieve word data and insert into database
     if (checkEpisodeData.episode_exists === false) {
+        // Retrieve first subtitle file available to process
         const getSubtitleRes = await fetch(
             `${process.env.NEXT_PUBLIC_BACK}get_subtitles?`+ new URLSearchParams({
                 anilist_id: show_id,
@@ -56,6 +59,7 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
         const getSubtitleData = await getSubtitleRes.json();
         const subUrl = getSubtitleData.subtitle_url;
         
+        // Check if the subtitle is a .srt or .ass file and indicate type for next endpoint
         const formData = new FormData();
         formData.append('url', subUrl);
         if (subUrl.endsWith('.srt')) {
@@ -65,7 +69,8 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
             formData.append('type', '.ass')
         }
 
-        const analysisRes = await fetch(
+        // Call /analyze_episode endpoint to parse words from subtitle file, find frequency and dictionary data, and insert into database
+        await fetch(
             `${process.env.NEXT_PUBLIC_BACK}analyze_episode?` + new URLSearchParams({
                 anilist_id: show_id,
                 episode: ep_id,
@@ -77,6 +82,7 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
         )
     }
 
+    // Since all data should be inserted into database, retrieve all word data for the episode from database
     const lookupRes = await fetch(
         `${process.env.NEXT_PUBLIC_BACK}get_episode?` + new URLSearchParams({
             anilist_id: show_id,
@@ -91,8 +97,6 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
         }
     )
     const data = await lookupRes.json();
-    
-    console.log(data);
 
     // Pass data to the page via props
     return { props: { data, title, show_id, ep_id, offset } }

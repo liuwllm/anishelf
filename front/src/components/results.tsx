@@ -23,12 +23,12 @@ export default function Results() {
         setTerm(e.target.value);
     }
 
+    // Change subject of dependency array only when the user presses enter or clicks on the search button
     const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>): void => {
         if (e.key === 'Enter'){
             setFullTerm(e.currentTarget.value);
         }
     }
-
     const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>): void => {
         setFullTerm(term);
     }
@@ -36,7 +36,8 @@ export default function Results() {
     useEffect(() => {
         let query = "";
         let searchVar = null;
-
+        
+        // Set query to searching for anime sorted by score without a search term
         if (term === "") {
             query = `
                 query {
@@ -55,6 +56,7 @@ export default function Results() {
                 }
             `;
         } 
+        // Add a search term to the query if a search term exists
         else {
             query = `
                 query ($search: String) {
@@ -77,6 +79,7 @@ export default function Results() {
             }
         }
 
+        // Set variables if they exist in query
         const fullJson = searchVar ? 
             ({
                 'query': query,
@@ -86,6 +89,7 @@ export default function Results() {
                 'query': query
             })
 
+        // Retrieve all data from Anilist API
         const fetchAnimeSeries = async () => {
             const response = await fetch('https://graphql.anilist.co', {
                 method: 'POST',

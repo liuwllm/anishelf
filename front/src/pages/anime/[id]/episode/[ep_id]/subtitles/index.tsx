@@ -32,6 +32,7 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
     let ep_id: string = context.query.ep_id as string;
     let title: string = context.query.title as string;
 
+    // Check if episode has data
     const checkEpisodeRes = await fetch(
         `${process.env.NEXT_PUBLIC_BACK}check_episode?` + new URLSearchParams({
             anilist_id: show_id,
@@ -46,8 +47,9 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
     )
     const checkEpisodeData = await checkEpisodeRes.json();
 
+    // If the episode doesn't have data, call endpoint to retrieve subtitle data from Jimaku API and insert into database
     if (checkEpisodeData.episode_exists === false) {
-        const getSubtitleRes = await fetch(
+        await fetch(
             `${process.env.NEXT_PUBLIC_BACK}get_subtitles?` + new URLSearchParams({
                 anilist_id: show_id,
                 episode: ep_id,
@@ -61,6 +63,7 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
         )
     }
 
+    // Retrieve all subtitle data from database
     const dlSubsRes = await fetch(
         `${process.env.NEXT_PUBLIC_BACK}download_subtitles?` + new URLSearchParams({
             anilist_id: show_id,
@@ -75,11 +78,13 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
     )
     const data = await dlSubsRes.json();
     
+    // Convert all timestamps to readable dates
     data.forEach((sub: Data) => {
         const date = new Date(sub.last_modified).toLocaleString();
         sub.last_modified = date
     })
 
+    // Pass data to the page via props 
     return { props: { data, show_id, title } }
 }
 

@@ -31,6 +31,7 @@ interface AnimeShow {
 export const getServerSideProps: GetServerSideProps = async (context: GetServerSidePropsContext) => {
     const id = context.query.id
 
+    // Query for Anilist API to retrieve all relevant data for the show corresponding to the ID
     const query = `
         query ($id: Int) {
             Media(id: $id) {
@@ -52,15 +53,16 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
         }
     `;
 
+    // Set up GraphQL query
     const variables = {
         'id': id
     }
-
     const fullQuery = {
         'query': query,
         'variables': variables
     }
 
+    // Retrieve data from Anilist API
     const response = await fetch('https://graphql.anilist.co', {
         method: 'POST',
         headers: {

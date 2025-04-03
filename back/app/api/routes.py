@@ -41,7 +41,7 @@ def check_episode():
         return Response(response=json.dumps({ "episode_exists": False }), mimetype='application/json')
     
     # Check if episode entry has no vocabulary
-    episodeId = Episode.query.with_entities(Episode.id).filter_by(episode_no =episodeNo, show_id=showId)
+    episodeId = Episode.query.with_entities(Episode.id).filter_by(episode_no=episodeNo, show_id=showId)
 
     if EpisodeWord.query.filter(EpisodeWord.episode_id == episodeId, EpisodeWord.show_id == showId).count() == 0:
         return Response(response=json.dumps({ "episode_exists": False }), mimetype='application/json')

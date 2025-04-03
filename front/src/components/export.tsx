@@ -14,6 +14,7 @@ export default function Export({ id, episode }: ExportProps ) {
     async function handleExport(id: string, episode: string) {
         setLoading(true);
 
+        // Check if data exists for episode
         const checkEpisodeRes = await fetch(
             `https://anishelf.tech/api/check_episode?` + new URLSearchParams({
                 anilist_id: id,
@@ -28,7 +29,9 @@ export default function Export({ id, episode }: ExportProps ) {
         )
         const checkEpisodeData = await checkEpisodeRes.json();
     
+        // If there is no data for the episode, retrieve all data and insert into the database
         if (checkEpisodeData.episode_exists === false) {
+            // Retrieve the first subtitle file available for further processing
             const getSubtitleRes = await fetch(
                 `https://anishelf.tech/api/get_subtitles?` + new URLSearchParams({
                     anilist_id: id,
@@ -44,6 +47,7 @@ export default function Export({ id, episode }: ExportProps ) {
             const getSubtitleData = await getSubtitleRes.json();
             const subUrl = getSubtitleData.subtitle_url;
             
+            // Check type of subtitle file for backend to process
             const formData = new FormData();
             formData.append('url', subUrl);
             if (subUrl.endsWith('.srt')) {
@@ -53,7 +57,8 @@ export default function Export({ id, episode }: ExportProps ) {
                 formData.append('type', '.ass')
             }
     
-            const analysisRes = await fetch(
+            // Call /analyze_episode endpoint to parse words from subtitle file, find frequency and dictionary data, and insert into database
+            await fetch(
                 `https://anishelf.tech/api/analyze_episode?` + new URLSearchParams({
                     anilist_id: id,
                     episode: episode,
@@ -65,6 +70,7 @@ export default function Export({ id, episode }: ExportProps ) {
             )
         }
         
+        // Since all data should be inserted into database, retrieve all word data for the episode from database
         const lookupRes = await fetch(
             `https://anishelf.tech/api/export_episode?` + new URLSearchParams({
                 anilist_id: id,
@@ -79,12 +85,12 @@ export default function Export({ id, episode }: ExportProps ) {
         )
         const lookupData: Vocabulary[] = await lookupRes.json()
         
-        console.log(lookupData);
-                
+        // Format CSV file
         const csvHeader = "data:text/csv;charset=utf-8,"
         const csvString = []
         csvString.push(["keb", "reb", "sense"].join(","));
         
+        // Add all word data from the episode to CSV string
         lookupData.map(card =>
             csvString.push([
                 card.keb,
@@ -93,10 +99,11 @@ export default function Export({ id, episode }: ExportProps ) {
             ].join(","))
         )
 
+        // Format CSV string into CSV file
         const finalCsvString = csvString.join('\n');
-
         const finalCsv = csvHeader + finalCsvString;
     
+        // Download CSV file for user
         let encodedUri = encodeURI(finalCsv);
         window.open(encodedUri);
 
