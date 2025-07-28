@@ -29,5 +29,5 @@ Once all words have been parsed from the subtitle file, Anishelf organizes the r
 
 ## 🌐 Usage
 
-You can try Anishelf yourself by visiting https://anishelf.tech/ to view the deployed website!
+You can try Anishelf yourself by visiting https://anishelf.app/ to view the deployed website!
 
