@@ -1,6 +1,6 @@
 # anishelf
 
-Anishelf is a full-stack web application that allows you to select any anime episode to grab subtitle files and generate flashcard decks for Japanese vocabulary to use in SRS programs.
+Anishelf is a full-stack web application that allows you to select any anime episode, grab subtitle files, and generate flashcard decks for Japanese vocabulary to use in SRS programs.
 
 ## 🔎 Preview
 
