@@ -110,7 +110,10 @@ def analyze_episode():
     subs = pysubs2.load(subPath)
 
     # Join subtitles into one string to be processed
-    combinedText = "".join(subs)
+    combinedText = ""
+    for line in subs:
+        combinedText += line.text
+        print(line)
 
     # Get frequencies of words
     resultDict = jpWordExtract(combinedText)

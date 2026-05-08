@@ -64,6 +64,7 @@ for child in root:
                     "sense" : entry['sense']
                 }
                 dictEntries.append(row)
+                print(row)
     else:
         for reb in entry['reb']:
             id += 1
@@ -74,6 +75,7 @@ for child in root:
                 "sense" : entry['sense']
             }
             dictEntries.append(row)
+            print(row)
 
 dbEntries = []
 
@@ -87,15 +89,32 @@ engine = create_engine(DATABASE_URL)
 sessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 session = sessionLocal()
 
-# Attempt to bulk save all words into database
-try:
-    session.bulk_save_objects(dbEntries)
-    session.commit()
-except Exception as e:
-    session.rollback()
-    print(f"Error during bulk insert: {e}")
-finally:
-    session.close()
+BATCH_SIZE = 50
+
+def chunked(iterable, size):
+    for i in range(0, len(iterable), size):
+        yield iterable[i:i + size]
+
+# Insert in batches
+total = len(dictEntries)
+print(f"Starting batch insert of {total} words (batch size: {BATCH_SIZE})")
+
+for i, batch in enumerate(chunked(dictEntries, BATCH_SIZE), start=1):
+    session = SessionLocal()
+    try:
+        dbEntries = [
+            Word(id=item['id'], keb=item['keb'], reb=item['reb'], sense=item['sense'])
+            for item in batch
+        ]
+        session.bulk_save_objects(dbEntries)
+        session.commit()
+        print(f"Batch {i}: Inserted {len(dbEntries)} records (up to {i * BATCH_SIZE} / {total})")
+    except Exception as e:
+        session.rollback()
+        print(f"Batch {i}: Error during insert - {e}")
+    finally:
+        session.close()
+
 
 # Convert dictionary to JSON file
 # jsonEntries = json.dumps(dictEntries, indent=2)
